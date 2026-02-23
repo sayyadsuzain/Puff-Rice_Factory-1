@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card'
-import { BillItem, COMPANY_INFO } from '@/lib/supabase'
+import { BillItem, COMPANY_INFO, formatDate } from '@/lib/supabase'
 
 interface BillPreviewProps {
   billType: 'kacchi' | 'pakki'
@@ -33,14 +33,6 @@ export default function BillPreview({
   totalAmountWords
 }: BillPreviewProps) {
   const isKacchi = billType === 'kacchi'
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00')
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
-  }
 
   return (
     <Card className="p-8 bg-white text-black" style={{ fontFamily: 'Arial, sans-serif' }}>

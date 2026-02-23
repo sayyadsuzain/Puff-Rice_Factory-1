@@ -1,4 +1,4 @@
-import { Bill, BillItem, COMPANY_INFO } from '@/lib/supabase'
+import { Bill, BillItem, COMPANY_INFO, formatDate } from '@/lib/supabase'
 import { Card } from '@/components/ui/card'
 
 interface BillDisplayProps {
@@ -8,14 +8,6 @@ interface BillDisplayProps {
 
 export default function BillDisplay({ bill, items }: BillDisplayProps) {
   const isKacchi = bill.bill_type === 'kacchi'
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00')
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      year: 'numeric'
-    })
-  }
 
   return (
     <Card className="bill-display max-w-4xl mx-auto bg-white shadow-lg">

@@ -51,7 +51,29 @@ export type SavedBankDetail = {
 
 export const COMPANY_INFO = {
   name: 'M S TRADING COMPANY',
-  address: 'KUPWAD MIDC NEAR NAV KRISHNA VALLEY SCHOOL PLOT NO L-52',
+  address: 'KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52',
   gst: '27CQIPS6685K1ZU',
   jurisdiction: 'Subject to Sangli Jurisdiction'
+}
+
+// Utility functions
+export const formatDate = (dateStr: string): string => {
+  const date = new Date(dateStr + 'T00:00:00')
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+}
+
+export const formatDateTime = (dateStr: string): string => {
+  const date = new Date(dateStr)
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  })
 }

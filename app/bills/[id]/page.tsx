@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { supabase, Bill, BillItem } from '@/lib/supabase'
+import { supabase, Bill, BillItem, formatDate, formatDateTime } from '@/lib/supabase'
 import { ArrowLeft, Printer, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import BillDisplay from '@/components/bill-display'
@@ -397,7 +397,7 @@ export default function BillDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Date</p>
-                  <p className="text-base md:text-lg font-semibold">{new Date(bill.bill_date).toLocaleDateString('en-GB')}</p>
+                  <p className="text-base md:text-lg font-semibold">{formatDate(bill.bill_date)}</p>
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Party Name</p>
@@ -437,7 +437,7 @@ export default function BillDetailPage() {
                 )}
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Created</p>
-                  <p className="text-xs md:text-sm">{new Date(bill.created_at).toLocaleString('en-IN')}</p>
+                  <p className="text-xs md:text-sm">{formatDateTime(bill.created_at)}</p>
                 </div>
               </CardContent>
             </Card>

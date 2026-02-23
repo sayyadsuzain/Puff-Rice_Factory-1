@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { supabase, Bill } from '@/lib/supabase'
+import { supabase, Bill, formatDate } from '@/lib/supabase'
 import { Plus, Eye, Printer, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { ProtectedRoute } from '@/components/protected-route'
@@ -347,10 +347,6 @@ export default function BillsPage() {
       console.error('Error deleting bill:', error)
       toast.error('Failed to delete bill')
     }
-  }
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-IN')
   }
 
   return (
