@@ -10,35 +10,101 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO, SavedBankDetail } from '@/lib/supabase'
+import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO, SavedBankDetail, numberToWords } from '@/lib/supabase'
 import BillPreview from '@/components/bill-preview'
 import BillItemForm from '@/components/bill-item-form'
+import { PartySearch } from '@/components/party-search'
+import { GSTToggle } from '@/components/gst-toggle'
 
 export const dynamic = 'force-dynamic'
 
 export default function CreateBillPage() {
-  const [billType, setBillType] = useState<'kacchi' | 'pakki'>('kacchi')
-  const [partyName, setPartyName] = useState('')
+  // Bill Type & Header
+  const [billType, setBillType] = useState<'kacchi' | 'pakki'>('pakki')
   const [billDate, setBillDate] = useState(new Date().toISOString().split('T')[0])
-  const [items, setItems] = useState<Partial<BillItem>[]>([])
-  const [totalAmount, setTotalAmount] = useState(0)
-  const [totalAmountWords, setTotalAmountWords] = useState('')
+  const [nextBillNumber, setNextBillNumber] = useState<string | null>(null)
+
+  // Party Information
+  const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null)
+  const [partyName, setPartyName] = useState('')
+  const [partyGst, setPartyGst] = useState('')
+
+  // Vehicle & Balance
   const [vehicleNumber, setVehicleNumber] = useState('')
   const [balance, setBalance] = useState('')
+
+  // GST Settings
+  const [isGstEnabled, setIsGstEnabled] = useState(false)
+  const [cgstPercent, setCgstPercent] = useState(0)
+  const [igstPercent, setIgstPercent] = useState(0)
+
+  // Bank Details
   const [bankName, setBankName] = useState('KARNATAKA BANK LTD.')
   const [bankIFSC, setBankIFSC] = useState('KARB0000729')
   const [bankAccount, setBankAccount] = useState('7292000100047001')
   const [showBankDetails, setShowBankDetails] = useState(true)
-  const [notes, setNotes] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [nextBillNumber, setNextBillNumber] = useState<number | null>(null)
   const [savedBankDetails, setSavedBankDetails] = useState<SavedBankDetail[]>([])
 
-  // Fetch next bill number on component mount
+  // Items & Calculations
+  const [items, setItems] = useState<Partial<BillItem>[]>([])
+  const [itemsTotal, setItemsTotal] = useState(0)
+  const [gstTotal, setGstTotal] = useState(0)
+  const [grandTotal, setGrandTotal] = useState(0)
+  const [totalAmountWords, setTotalAmountWords] = useState('')
+
+  // Additional Fields
+  const [notes, setNotes] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // Fetch initial data
   useEffect(() => {
     fetchNextBillNumber()
     fetchSavedBankDetails()
   }, [])
+
+  // Auto-format vehicle number to uppercase
+  useEffect(() => {
+    if (vehicleNumber) {
+      setVehicleNumber(vehicleNumber.toUpperCase())
+    }
+  }, [vehicleNumber])
+
+  // Auto-calculate totals when items or GST change
+  useEffect(() => {
+    const calculatedItemsTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0)
+    setItemsTotal(calculatedItemsTotal)
+
+    if (billType === 'pakki' && isGstEnabled) {
+      const cgstAmount = (calculatedItemsTotal * cgstPercent) / 100
+      const igstAmount = (calculatedItemsTotal * igstPercent) / 100
+      const calculatedGstTotal = cgstAmount + igstAmount
+      setGstTotal(calculatedGstTotal)
+
+      const balanceAmount = balance ? parseFloat(balance) : 0
+      const calculatedGrandTotal = calculatedItemsTotal + calculatedGstTotal + balanceAmount
+      setGrandTotal(calculatedGrandTotal)
+
+      if (calculatedGrandTotal > 0) {
+        setTotalAmountWords(numberToWords(calculatedGrandTotal))
+      }
+    } else {
+      const balanceAmount = balance ? parseFloat(balance) : 0
+      const calculatedGrandTotal = calculatedItemsTotal + balanceAmount
+      setGrandTotal(calculatedGrandTotal)
+      setGstTotal(0)
+
+      if (calculatedGrandTotal > 0) {
+        setTotalAmountWords(numberToWords(calculatedGrandTotal))
+      }
+    }
+  }, [items, isGstEnabled, cgstPercent, igstPercent, balance, billType])
+
+  const fetchNextBillNumber = async () => {
+    // Simplified approach: just use default values
+    // Bill numbers will be properly generated when saving
+    const fallback = billType === 'pakki' ? 'P001' : 'K001'
+    setNextBillNumber(fallback)
+  }
 
   const fetchSavedBankDetails = async () => {
     try {
@@ -57,18 +123,33 @@ export default function CreateBillPage() {
 
   const handleBillTypeChange = (value: 'kacchi' | 'pakki') => {
     setBillType(value)
-    // Reset bank details to default when switching to Pakki
-    if (value === 'pakki') {
-      setBankName('KARNATAKA BANK LTD.')
-      setBankIFSC('KARB0000729')
-      setBankAccount('7292000100047001')
+    fetchNextBillNumber()
+
+    // Reset GST when switching to Kacchi
+    if (value === 'kacchi') {
+      setIsGstEnabled(false)
     }
   }
 
-  const loadBankDetails = (bank: SavedBankDetail) => {
-    setBankName(bank.bank_name)
-    setBankIFSC(bank.bank_ifsc)
-    setBankAccount(bank.bank_account)
+  const handlePartySelect = (partyId: number | null, name: string) => {
+    setSelectedPartyId(partyId)
+    setPartyName(name)
+
+    // Fetch party GST if party is selected
+    if (partyId) {
+      supabase
+        .from('parties')
+        .select('gst_number')
+        .eq('id', partyId)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setPartyGst(data.gst_number || '')
+          }
+        })
+    } else {
+      setPartyGst('')
+    }
   }
 
   const handleSaveBankDetails = async () => {
@@ -102,10 +183,7 @@ export default function CreateBillPage() {
           }
         ])
 
-      if (saveError) {
-        console.error('Save error:', saveError)
-        throw saveError
-      }
+      if (saveError) throw saveError
 
       // Refresh saved bank details
       await fetchSavedBankDetails()
@@ -116,113 +194,10 @@ export default function CreateBillPage() {
     }
   }
 
-  // Auto-format vehicle number to uppercase
-  useEffect(() => {
-    if (vehicleNumber) {
-      setVehicleNumber(vehicleNumber.toUpperCase())
-    }
-  }, [vehicleNumber])
-
-  // Auto-format party name to title case
-  useEffect(() => {
-    if (partyName) {
-      const titleCase = partyName
-        .toLowerCase()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-      if (titleCase !== partyName) {
-        setPartyName(titleCase)
-      }
-    }
-  }, [partyName])
-
-  // Auto-calculate total amount when items change
-  useEffect(() => {
-    const calculatedTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0)
-    setTotalAmount(calculatedTotal)
-
-    // Auto-generate amount in words based on total including balance
-    const finalTotal = calculatedTotal + (balance ? parseFloat(balance) : 0)
-    if (finalTotal > 0) {
-      setTotalAmountWords(numberToWords(finalTotal))
-    } else {
-      setTotalAmountWords('')
-    }
-  }, [items, balance])
-
-  const numberToWords = (num: number): string => {
-    if (num === 0) return 'Zero'
-
-    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine']
-    const teens = ['', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen']
-    const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
-    const thousands = ['', 'Thousand', 'Lakh', 'Crore']
-
-    const convertLessThanThousand = (n: number): string => {
-      if (n === 0) return ''
-      if (n < 10) return ones[n]
-      if (n < 20) return teens[n - 10]
-      if (n < 100) {
-        const ten = Math.floor(n / 10)
-        const one = n % 10
-        return tens[ten] + (one > 0 ? ' ' + ones[one] : '')
-      }
-      const hundred = Math.floor(n / 100)
-      const remainder = n % 100
-      return ones[hundred] + ' Hundred' + (remainder > 0 ? ' ' + convertLessThanThousand(remainder) : '')
-    }
-
-    const rupees = Math.floor(num)
-    const paise = Math.round((num - rupees) * 100)
-
-    let result = ''
-
-    // Handle rupees
-    if (rupees > 0) {
-      let temp = rupees
-      let thousandIndex = 0
-
-      while (temp > 0 && thousandIndex < thousands.length) {
-        const chunk = temp % 1000
-        if (chunk > 0) {
-          const chunkWords = convertLessThanThousand(chunk)
-          result = chunkWords + (thousands[thousandIndex] ? ' ' + thousands[thousandIndex] : '') + (result ? ' ' + result : '')
-        }
-        temp = Math.floor(temp / 1000)
-        thousandIndex++
-      }
-
-      result += ' Rupees'
-    }
-
-    // Handle paise
-    if (paise > 0) {
-      if (rupees > 0) result += ' and '
-      result += convertLessThanThousand(paise) + ' Paise'
-    }
-
-    if (result) result += ' Only'
-
-    return result.trim()
-  }
-
-  const fetchNextBillNumber = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('bills')
-        .select('bill_number')
-        .order('bill_number', { ascending: false })
-        .limit(1)
-
-      if (error) throw error
-
-      const nextNum = data && data.length > 0 ? data[0].bill_number + 1 : 1
-      setNextBillNumber(nextNum)
-    } catch (error) {
-      console.error('Error fetching bill number:', error)
-      setNextBillNumber(1)
-    }
+  const loadBankDetails = (bank: SavedBankDetail) => {
+    setBankName(bank.bank_name)
+    setBankIFSC(bank.bank_ifsc)
+    setBankAccount(bank.bank_account)
   }
 
   const handleAddItem = () => {
@@ -241,8 +216,8 @@ export default function CreateBillPage() {
   }
 
   const handleSaveBill = async () => {
-    if (!partyName.trim()) {
-      toast.error('Please enter party name')
+    if (!selectedPartyId || !partyName.trim()) {
+      toast.error('Please select a party')
       return
     }
 
@@ -251,64 +226,114 @@ export default function CreateBillPage() {
       return
     }
 
+    // Validate each item
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (!item.particular?.trim()) {
+        toast.error(`Item ${i + 1}: Please enter a product name`)
+        return
+      }
+
+      const isPaddy = item.particular?.toLowerCase().includes('paddy')
+      if (isPaddy && (!item.weight_kg || item.weight_kg <= 0)) {
+        toast.error(`Item ${i + 1} (${item.particular}): Weight is required for paddy`)
+        return
+      }
+
+      if (!item.rate || item.rate <= 0) {
+        toast.error(`Item ${i + 1} (${item.particular}): Please enter a valid rate`)
+        return
+      }
+
+      if (!item.amount || item.amount <= 0) {
+        toast.error(`Item ${i + 1} (${item.particular}): Amount calculation failed. Please check your inputs.`)
+        return
+      }
+    }
+
+    if (billType === 'pakki' && isGstEnabled && !COMPANY_INFO.gst) {
+      toast.error('Company GST number is required for GST bills')
+      return
+    }
+
+    console.log('Starting bill creation process...')
+    console.log('Bill type:', billType)
+    console.log('Items count:', items.length)
+    console.log('Selected party:', selectedPartyId, partyName)
     setLoading(true)
     let billId: number | null = null
 
     try {
-      console.log('Creating bill with data:', {
-        billNumber: nextBillNumber,
-        billType,
-        partyName,
-        billDate,
-        totalAmount,
-        itemsCount: items.length
-      })
+      // Generate fresh bill number before saving
+      let billNumber = nextBillNumber
+      if (!billNumber || billNumber === 'P001' || billNumber === 'K001') {
+        try {
+          const prefix = billType === 'pakki' ? 'P' : 'K'
+          const { data } = await supabase
+            .from('bills')
+            .select('bill_number')
+            .ilike('bill_number', `${prefix}%`)
+            .order('bill_number', { ascending: false })
+            .limit(1)
 
-      // Get the latest bill number globally (not per type) to avoid duplicates
-      const { data: latestBill, error: latestError } = await supabase
-        .from('bills')
-        .select('bill_number')
-        .order('bill_number', { ascending: false })
-        .limit(1)
-
-      if (latestError) {
-        console.error('Error fetching latest bill number:', latestError)
-        throw latestError
+          let nextNumber = 1
+          if (data && data.length > 0 && data[0].bill_number) {
+            const billNumStr = data[0].bill_number
+            if (billNumStr && billNumStr.startsWith(prefix)) {
+              const numPart = billNumStr.substring(1)
+              const currentNumber = parseInt(numPart, 10)
+              if (!isNaN(currentNumber)) {
+                nextNumber = currentNumber + 1
+              }
+            }
+          }
+          billNumber = `${prefix}${nextNumber.toString().padStart(3, '0')}`
+        } catch (error) {
+          // Use fallback if query fails
+          billNumber = billType === 'pakki' ? 'P001' : 'K001'
+        }
       }
 
-      const actualBillNumber = latestBill && latestBill.length > 0 ? latestBill[0].bill_number + 1 : 1
-      console.log('Using global bill number:', actualBillNumber, '(was:', nextBillNumber, 'for type:', billType, ')')
-
       const billData = {
-        bill_number: actualBillNumber,
+        bill_number: billNumber,
         bill_type: billType,
-        party_name: partyName,
+        party_id: selectedPartyId,
         bill_date: billDate,
-        total_amount: totalAmount,
+        total_amount: grandTotal,
         total_amount_words: totalAmountWords,
+        vehicle_number: vehicleNumber || null,
+        balance: balance ? parseFloat(balance) : 0,
+        // GST fields
+        is_gst_enabled: isGstEnabled,
+        company_gst_number: isGstEnabled ? COMPANY_INFO.gst : null,
+        party_gst_number: isGstEnabled ? partyGst : null,
+        cgst_percent: isGstEnabled ? cgstPercent : 0,
+        igst_percent: isGstEnabled ? igstPercent : 0,
+        sgst_percent: 0, // Always 0 since we removed SGST
+        cgst_amount: isGstEnabled ? (itemsTotal * cgstPercent) / 100 : 0,
+        igst_amount: isGstEnabled ? (itemsTotal * igstPercent) / 100 : 0,
+        sgst_amount: 0, // Always 0 since we removed SGST
+        gst_total: gstTotal,
+        // Bank details
         bank_name: billType === 'pakki' ? bankName : null,
         bank_ifsc: billType === 'pakki' ? bankIFSC : null,
         bank_account: billType === 'pakki' ? bankAccount : null,
-        vehicle_number: vehicleNumber || null,
-        balance: balance ? parseFloat(balance) : null,
         notes: notes || null
       }
-
-      console.log('Bill data to insert:', billData)
 
       const { data: billResult, error: billError } = await supabase
         .from('bills')
         .insert([billData])
         .select()
 
-      console.log('Bill insert result:', billResult)
       if (billError) {
-        console.error('Bill insert error details:', billError)
+        console.error('Bill insert error:', billError)
+        console.error('Bill data being inserted:', billData)
         throw billError
       }
 
       billId = billResult[0].id
-      console.log('Created bill with ID:', billId)
+      console.log('Bill created successfully with ID:', billId)
 
       // Create bill items
       const itemsToInsert = items.map(item => ({
@@ -320,6 +345,8 @@ export default function CreateBillPage() {
         amount: item.amount || null
       }))
 
+      console.log('Items to insert:', itemsToInsert)
+
       const { error: itemsError } = await supabase
         .from('bill_items')
         .insert(itemsToInsert)
@@ -329,26 +356,18 @@ export default function CreateBillPage() {
         throw itemsError
       }
 
+      console.log('Bill items created successfully')
+
       toast.success(`Bill created successfully! (${billType})`)
-
-      console.log(`Redirecting to bill view: /bills/${billId} for ${billType} bill`)
-
-      // Redirect to bill view for both kacchi and pakki bills
       window.location.href = `/bills/${billId}`
     } catch (error) {
       console.error('Error creating bill:', error)
-      if (error && typeof error === 'object' && 'message' in error) {
-        console.error('Error message:', error.message)
-        toast.error(`Failed to create bill: ${error.message}`)
-      } else {
-        toast.error('Failed to create bill - check console for details')
-      }
+      toast.error('Failed to create bill')
 
       // If bill was created but items failed, clean up
-      if (billId && error) {
+      if (billId) {
         try {
           await supabase.from('bills').delete().eq('id', billId)
-          console.log('Cleaned up failed bill creation')
         } catch (cleanupError) {
           console.error('Failed to cleanup:', cleanupError)
         }
@@ -379,7 +398,8 @@ export default function CreateBillPage() {
               <CardDescription className="text-sm md:text-base">Fill in the bill details below</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 md:space-y-6">
-              {/* Bill Type */}
+
+              {/* 1. BILL TYPE SELECTION */}
               <div className="space-y-2">
                 <Label className="text-sm md:text-base">Bill Type</Label>
                 <Select value={billType} onValueChange={handleBillTypeChange}>
@@ -393,11 +413,11 @@ export default function CreateBillPage() {
                 </Select>
               </div>
 
-              {/* Bill Number & Date - Responsive Grid */}
+              {/* 2. BILL HEADER SECTION */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <div className="space-y-2">
                   <Label className="text-sm md:text-base">Bill No.</Label>
-                  <Input value={`${billType === 'kacchi' ? 'K' : 'P'}${String(nextBillNumber || 0).padStart(3, '0')}`} disabled className="bg-muted text-sm md:text-base" />
+                  <Input value={nextBillNumber || ''} disabled className="bg-muted text-sm md:text-base" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm md:text-base">Date</Label>
@@ -410,42 +430,50 @@ export default function CreateBillPage() {
                 </div>
               </div>
 
-              {/* Party Name */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Party Name (M/s.)</Label>
-                <Input
-                  placeholder="Enter customer/party name"
-                  value={partyName}
-                  onChange={(e) => setPartyName(e.target.value)}
-                  className="text-sm md:text-base"
-                />
+              {/* 3. PARTY INFORMATION SECTION */}
+              <PartySearch
+                value={partyName}
+                onChange={handlePartySelect}
+                required
+              />
+
+              {/* 4. VEHICLE & BALANCE SECTION */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm md:text-base">Vehicle Number</Label>
+                  <Input
+                    placeholder="e.g., MH-12-AB-1234"
+                    value={vehicleNumber}
+                    onChange={(e) => setVehicleNumber(e.target.value)}
+                    className="text-sm md:text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm md:text-base">Balance (₹)</Label>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={balance}
+                    onChange={(e) => setBalance(e.target.value)}
+                    step="0.01"
+                    className="text-sm md:text-base"
+                  />
+                </div>
               </div>
 
-              {/* Vehicle Number */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Vehicle Number</Label>
-                <Input
-                  placeholder="e.g., MH-12-AB-1234"
-                  value={vehicleNumber}
-                  onChange={(e) => setVehicleNumber(e.target.value)}
-                  className="text-sm md:text-base"
-                />
-              </div>
+              {/* 5. GST NUMBER SECTION (PAKKI ONLY) */}
+              {billType === 'pakki' && (
+                <div className="space-y-2">
+                  <Label className="text-sm md:text-base">GST Number</Label>
+                  <Input
+                    value={COMPANY_INFO.gst}
+                    disabled
+                    className="bg-muted text-sm md:text-base"
+                  />
+                </div>
+              )}
 
-              {/* Balance */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Balance (₹)</Label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={balance}
-                  onChange={(e) => setBalance(e.target.value)}
-                  step="0.01"
-                  className="text-sm md:text-base"
-                />
-              </div>
-
-              {/* Bank Details (Only for Pakki bills) */}
+              {/* 6. BANK DETAILS SECTION (PAKKI ONLY) */}
               {billType === 'pakki' && (
                 <div className="space-y-3 md:space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -493,44 +521,42 @@ export default function CreateBillPage() {
                         </div>
                       )}
 
-                      {/* Bank Name */}
-                      <div className="space-y-2">
-                        <Label className="text-xs md:text-sm">Bank Name</Label>
-                        <Input
-                          placeholder="e.g., KARNATAKA BANK LTD."
-                          value={bankName}
-                          onChange={(e) => setBankName(e.target.value)}
-                          className="text-sm md:text-base"
-                        />
-                      </div>
-
-                      {/* Bank IFSC */}
-                      <div className="space-y-2">
-                        <Label className="text-xs md:text-sm">IFSC Code</Label>
-                        <Input
-                          placeholder="e.g., KARB0000729"
-                          value={bankIFSC}
-                          onChange={(e) => setBankIFSC(e.target.value)}
-                          className="text-sm md:text-base"
-                        />
-                      </div>
-
-                      {/* Bank Account */}
-                      <div className="space-y-2">
-                        <Label className="text-xs md:text-sm">Account Number</Label>
-                        <Input
-                          placeholder="e.g., 7292000100047001"
-                          value={bankAccount}
-                          onChange={(e) => setBankAccount(e.target.value)}
-                          className="text-sm md:text-base"
-                        />
+                      {/* Bank Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs md:text-sm">Bank Name</Label>
+                          <Input
+                            placeholder="e.g., KARNATAKA BANK LTD."
+                            value={bankName}
+                            onChange={(e) => setBankName(e.target.value)}
+                            className="text-sm md:text-base"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs md:text-sm">IFSC Code</Label>
+                          <Input
+                            placeholder="e.g., KARB0000729"
+                            value={bankIFSC}
+                            onChange={(e) => setBankIFSC(e.target.value)}
+                            className="text-sm md:text-base"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs md:text-sm">Account Number</Label>
+                          <Input
+                            placeholder="e.g., 7292000100047001"
+                            value={bankAccount}
+                            onChange={(e) => setBankAccount(e.target.value)}
+                            className="text-sm md:text-base"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Items Section */}
+              {/* 7. ITEMS SECTION */}
               <div className="space-y-3 md:space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm md:text-base font-semibold">Items</Label>
@@ -560,34 +586,71 @@ export default function CreateBillPage() {
                     ))
                   )}
                 </div>
+
+                {/* Items Sub Total */}
+                <div className="flex justify-end pt-2 border-t">
+                  <div className="text-sm">
+                    <span className="font-medium">Sub Total: ₹{itemsTotal.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Total Amount */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Total Amount (₹)</Label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={totalAmount}
-                  onChange={(e) => setTotalAmount(parseFloat(e.target.value) || 0)}
-                  step="0.01"
-                  className="text-sm md:text-base"
+              {/* 8. GST TOGGLE SECTION (PAKKI ONLY) */}
+              {billType === 'pakki' && (
+                <GSTToggle
+                  isEnabled={isGstEnabled}
+                  onToggle={setIsGstEnabled}
+                  cgstPercent={cgstPercent}
+                  igstPercent={igstPercent}
+                  onPercentChange={(type, value) => {
+                    if (type === 'cgst') setCgstPercent(value)
+                    else if (type === 'igst') setIgstPercent(value)
+                  }}
+                  itemsTotal={itemsTotal}
+                  partyGst={partyGst}
+                  onPartyGstChange={setPartyGst}
                 />
-                <p className="text-xs text-muted-foreground">You can edit this field manually</p>
+              )}
+
+              {/* 9. TOTALS SECTION */}
+              <div className="space-y-3 md:space-y-4 p-3 md:p-4 border rounded-lg bg-blue-50">
+                <Label className="text-sm md:text-base font-semibold">Totals</Label>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Items Total:</span>
+                    <span>₹{itemsTotal.toFixed(2)}</span>
+                  </div>
+                  {billType === 'pakki' && isGstEnabled && (
+                    <div className="flex justify-between text-sm">
+                      <span>GST Total:</span>
+                      <span>₹{gstTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {balance && parseFloat(balance) !== 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span>Balance:</span>
+                      <span>₹{parseFloat(balance).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-base font-bold border-t pt-2">
+                    <span>Grand Total:</span>
+                    <span>₹{grandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm md:text-base">Amount in Words</Label>
+                  <Input
+                    placeholder="Auto-generated from grand total"
+                    value={totalAmountWords}
+                    onChange={(e) => setTotalAmountWords(e.target.value)}
+                    className="text-sm md:text-base"
+                  />
+                </div>
               </div>
 
-              {/* Total Amount in Words */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Amount in Words</Label>
-                <Input
-                  placeholder="e.g., Sixty-Five Thousand Only"
-                  value={totalAmountWords}
-                  onChange={(e) => setTotalAmountWords(e.target.value)}
-                  className="text-sm md:text-base"
-                />
-              </div>
-
-              {/* Notes */}
+              {/* 10. NOTES */}
               <div className="space-y-2">
                 <Label className="text-sm md:text-base">Notes</Label>
                 <Input
@@ -598,7 +661,7 @@ export default function CreateBillPage() {
                 />
               </div>
 
-              {/* Save Button */}
+              {/* 11. CREATE BILL BUTTON */}
               <Button
                 onClick={handleSaveBill}
                 disabled={loading}
@@ -615,9 +678,10 @@ export default function CreateBillPage() {
         <div className="mt-6 md:mt-0">
           <BillPreview
             billType={billType}
-            billNumber={`${billType === 'kacchi' ? 'K' : 'P'}${String(nextBillNumber || 0).padStart(3, '0')}`}
+            billNumber={nextBillNumber || ''}
             billDate={billDate}
             partyName={partyName}
+            partyGst={isGstEnabled ? partyGst : undefined}
             vehicleNumber={vehicleNumber}
             balance={balance ? parseFloat(balance) : undefined}
             bankName={billType === 'pakki' ? bankName : undefined}
@@ -625,7 +689,12 @@ export default function CreateBillPage() {
             bankAccount={billType === 'pakki' ? bankAccount : undefined}
             showBankDetails={showBankDetails}
             items={items}
-            totalAmount={totalAmount}
+            itemsTotal={itemsTotal}
+            gstEnabled={isGstEnabled}
+            cgstPercent={isGstEnabled ? cgstPercent : 0}
+            igstPercent={isGstEnabled ? igstPercent : 0}
+            gstTotal={gstTotal}
+            grandTotal={grandTotal}
             totalAmountWords={totalAmountWords}
           />
         </div>

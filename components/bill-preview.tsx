@@ -6,6 +6,7 @@ interface BillPreviewProps {
   billNumber: string
   billDate: string
   partyName: string
+  partyGst?: string
   vehicleNumber?: string
   balance?: number
   bankName?: string
@@ -13,7 +14,12 @@ interface BillPreviewProps {
   bankAccount?: string
   showBankDetails?: boolean
   items: Partial<BillItem>[]
-  totalAmount: number
+  itemsTotal: number
+  gstEnabled?: boolean
+  cgstPercent?: number
+  igstPercent?: number
+  gstTotal?: number
+  grandTotal: number
   totalAmountWords: string
 }
 
@@ -22,6 +28,7 @@ export default function BillPreview({
   billNumber,
   billDate,
   partyName,
+  partyGst,
   vehicleNumber,
   balance,
   bankName,
@@ -29,7 +36,12 @@ export default function BillPreview({
   bankAccount,
   showBankDetails = true,
   items,
-  totalAmount,
+  itemsTotal,
+  gstEnabled = false,
+  cgstPercent = 0,
+  igstPercent = 0,
+  gstTotal = 0,
+  grandTotal,
   totalAmountWords
 }: BillPreviewProps) {
   const isKacchi = billType === 'kacchi'
@@ -89,10 +101,20 @@ export default function BillPreview({
             <span className="font-bold">M/s. </span>
             <span>{partyName || '_'.repeat(40)}</span>
           </div>
-          {vehicleNumber && (
-            <div className="text-sm mt-1">
-              <span className="font-bold">Vehicle No.: </span>
-              <span>{vehicleNumber}</span>
+          {(vehicleNumber || (!isKacchi && gstEnabled && partyGst)) && (
+            <div className="text-sm mt-1 flex justify-between">
+              {vehicleNumber && (
+                <div>
+                  <span className="font-bold">Vehicle No.: </span>
+                  <span>{vehicleNumber}</span>
+                </div>
+              )}
+              {!isKacchi && gstEnabled && partyGst && (
+                <div className={vehicleNumber ? "text-right" : ""}>
+                  <span className="font-bold">GST No.: </span>
+                  <span>{partyGst}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -116,15 +138,29 @@ export default function BillPreview({
                 </td>
               </tr>
             ) : (
-              items.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="border border-gray-300 p-2">{item.particular || ''}</td>
-                  <td className="border border-gray-300 p-2 text-center">{item.qty_bags || ''}</td>
-                  <td className="border border-gray-300 p-2 text-center">{item.weight_kg || ''}</td>
-                  <td className="border border-gray-300 p-2 text-center">{item.rate || ''}</td>
-                  <td className="border border-gray-300 p-2 text-right">{item.amount?.toFixed(2) || ''}</td>
-                </tr>
-              ))
+              items.map((item, idx) => {
+                const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
+                return (
+                  <tr key={idx}>
+                    <td className="border border-gray-300 p-2">
+                      <div>{item.particular || ''}</div>
+                      {isPaddyItem && item.weight_kg && (
+                        <div className="text-xs text-blue-600">
+                          ({item.weight_kg}kg total)
+                        </div>
+                      )}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">{item.qty_bags || ''}</td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {item.rate ? `${item.rate.toFixed(2)} ${isPaddyItem ? '₹/kg' : '₹'}` : ''}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-right">{item.amount?.toFixed(2) || ''}</td>
+                  </tr>
+                )
+              })
             )}
             {/* Empty rows for spacing */}
             {items.length < 3 && (
@@ -140,6 +176,7 @@ export default function BillPreview({
             )}
           </tbody>
         </table>
+
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <div className="font-bold">Rs. in Words:</div>
@@ -147,18 +184,45 @@ export default function BillPreview({
           </div>
           <div className="text-right">
             <div className="font-bold mb-1">SUB TOTAL</div>
-            <div className="text-lg font-bold border-t border-black pt-1">₹ {totalAmount.toFixed(2)}</div>
-            {balance && balance > 0 && (
+            <div className="text-lg font-bold border-t border-black pt-1">₹ {itemsTotal.toFixed(2)}</div>
+
+            {!isKacchi && gstEnabled && gstTotal > 0 && (
               <>
-                <div className="font-bold mb-1 mt-2">BALANCE</div>
-                <div className="text-lg font-bold">₹ {balance.toFixed(2)}</div>
-                <div className="font-bold mb-1 mt-2 border-t border-black pt-1">TOTAL</div>
-                <div className="text-xl font-bold border-t-2 border-black pt-1">₹ {(totalAmount + balance).toFixed(2)}</div>
+                <div className="mt-3 mb-2">
+                  {cgstPercent > 0 && (
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm">CGST @ {cgstPercent}%</span>
+                      <span className="font-bold text-sm">₹ {(itemsTotal * cgstPercent / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {igstPercent > 0 && (
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm">IGST @ {igstPercent}%</span>
+                      <span className="font-bold text-sm">₹ {(itemsTotal * igstPercent / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-1 border-t border-gray-300 pt-2 mt-1">
+                    <span className="text-sm font-semibold">GST Total:</span>
+                    <span className="font-bold text-sm">₹ {gstTotal.toFixed(2)}</span>
+                  </div>
+                </div>
               </>
             )}
-            {(!balance || balance === 0) && (
-              <div className="font-bold mb-2 mt-2">TOTAL</div>
+
+            {balance && balance > 0 && (
+              <>
+                <div className="font-bold mb-1 mt-3 text-sm">BALANCE</div>
+                <div className="text-lg font-bold mb-2">₹ {balance.toFixed(2)}</div>
+              </>
             )}
+
+            <div className="border-t-2 border-black pt-2 mt-3">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold">TOTAL</span>
+                <span className="text-xl font-bold">₹ {grandTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
             {/* Company signature below total */}
             {!isKacchi && (
               <div className="text-xs font-bold text-red-600 mt-4 mb-4">
@@ -178,11 +242,16 @@ export default function BillPreview({
         {/* Bank Details for Pakki */}
         {!isKacchi && showBankDetails && bankName && bankIFSC && bankAccount && (
           <div className="border-t pt-3 text-xs space-y-1">
-            <div className="grid grid-cols-2">
+            <div className="grid grid-cols-2 gap-8">
               <div>
                 <div className="font-bold text-red-600">BANK : {bankName}</div>
                 <div>IFSC CODE NO. : {bankIFSC}</div>
                 <div>S. B. No. : {bankAccount}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-bold text-red-600">Contact:</div>
+                <div>9860022450</div>
+                <div>9561420666</div>
               </div>
             </div>
           </div>

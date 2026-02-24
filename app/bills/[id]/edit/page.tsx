@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO } from '@/lib/supabase'
 import BillPreview from '@/components/bill-preview'
 import BillItemForm from '@/components/bill-item-form'
+import { GSTToggle } from '@/components/gst-toggle'
 import { ProtectedRoute } from '@/components/protected-route'
 
 export const dynamic = 'force-dynamic'
@@ -40,6 +41,14 @@ export default function EditBillPage() {
   const [fetchLoading, setFetchLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
+  // GST-related state variables
+  const [isGstEnabled, setIsGstEnabled] = useState(false)
+  const [cgstPercent, setCgstPercent] = useState(0)
+  const [igstPercent, setIgstPercent] = useState(0)
+  const [gstTotal, setGstTotal] = useState(0)
+  const [grandTotal, setGrandTotal] = useState(0)
+  const [partyGst, setPartyGst] = useState('')
+
   // Auto-format vehicle number to uppercase
   useEffect(() => {
     if (vehicleNumber) {
@@ -61,10 +70,12 @@ export default function EditBillPage() {
     }
   }, [partyName])
 
-  // Fetch bill data on component mount
   useEffect(() => {
     if (billId) {
+      console.log('🔄 EDIT PAGE: Starting to fetch bill data for ID:', billId)
       fetchBillData()
+    } else {
+      console.log('❌ EDIT PAGE: No billId provided')
     }
   }, [billId])
 
@@ -120,24 +131,23 @@ export default function EditBillPage() {
     }
 
     if (result) result += ' Only'
-
     return result.trim()
   }
 
   const fetchBillData = async () => {
+    console.log('EDIT PAGE: fetchBillData called')
     try {
-      console.log('Fetching bill data for ID:', billId)
-
       setFetchLoading(true)
       setFetchError(null)
 
+      console.log('EDIT PAGE: Making API call to Supabase...')
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timeout - please check your internet connection')), 15000)
       )
 
       const fetchPromise = async () => {
-        console.log('Connecting to Supabase...')
+        console.log('EDIT PAGE: Connecting to Supabase...')
 
         // Fetch bill data
         const { data: billData, error: billError } = await supabase
@@ -146,20 +156,41 @@ export default function EditBillPage() {
           .eq('id', billId)
           .single()
 
+        console.log('EDIT PAGE: Bill query result:', { data: billData, error: billError })
+
         if (billError) {
-          console.error('Bill fetch error:', billError)
+          console.error('EDIT PAGE: Bill fetch error:', billError)
           throw new Error(`Failed to fetch bill: ${billError.message}`)
         }
 
         if (!billData) {
+          console.error('EDIT PAGE: No bill data found')
           throw new Error('Bill not found')
         }
 
-        console.log('Bill data fetched successfully:', billData)
+        console.log('✅ EDIT PAGE: Bill data fetched successfully:', billData)
 
-        // Populate form with existing data
+        // Fetch party information first if we have party_id
+        if (billData.party_id) {
+          console.log('🔄 EDIT PAGE: Fetching party information for party_id:', billData.party_id)
+          const { data: partyData, error: partyError } = await supabase
+            .from('parties')
+            .select('name, gst_number')
+            .eq('id', billData.party_id)
+            .single()
+
+          if (!partyError && partyData) {
+            console.log('✅ EDIT PAGE: Party data fetched:', partyData)
+            setPartyName(partyData.name)
+            setPartyGst(partyData.gst_number || '')
+          } else {
+            console.error('❌ EDIT PAGE: Failed to fetch party data:', partyError)
+          }
+        }
+
+        // Populate form with existing bill data
+        console.log('🔄 EDIT PAGE: Populating form with bill data...')
         setBillType(billData.bill_type)
-        setPartyName(billData.party_name)
         setBillDate(billData.bill_date)
         setVehicleNumber(billData.vehicle_number || '')
         setBalance(billData.balance ? billData.balance.toString() : '')
@@ -168,11 +199,16 @@ export default function EditBillPage() {
         setBankAccount(billData.bank_account || '')
         setNotes(billData.notes || '')
         setBillNumber(billData.bill_number)
+
+        // Populate GST fields
+        setIsGstEnabled(billData.is_gst_enabled || false)
+        setCgstPercent(billData.cgst_percent || 0)
+        setIgstPercent(billData.igst_percent || 0)
+
         // Don't set totalAmount from database - calculate from items instead
-        // setTotalAmount(billData.total_amount)
         setTotalAmountWords(billData.total_amount_words || '')
 
-        console.log('Form populated with bill data')
+        console.log('✅ EDIT PAGE: Form populated with bill data')
 
         // Fetch bill items
         const { data: itemsData, error: itemsError } = await supabase
@@ -217,16 +253,35 @@ export default function EditBillPage() {
     console.log('Recalculating total from items:', items.length, 'items, total:', calculatedTotal)
     setTotalAmount(calculatedTotal)
 
-    // Auto-generate amount in words based on total including balance
-    const finalTotal = calculatedTotal + (balance ? parseFloat(balance) : 0)
-    if (finalTotal > 0) {
-      const words = numberToWords(finalTotal)
-      console.log('Generated amount in words:', words)
-      setTotalAmountWords(words)
+    // Calculate GST if enabled
+    if (billType === 'pakki' && isGstEnabled) {
+      const cgstAmount = (calculatedTotal * cgstPercent) / 100
+      const igstAmount = (calculatedTotal * igstPercent) / 100
+      const calculatedGstTotal = cgstAmount + igstAmount
+      setGstTotal(calculatedGstTotal)
+
+      const balanceAmount = balance ? parseFloat(balance) : 0
+      const calculatedGrandTotal = calculatedTotal + calculatedGstTotal + balanceAmount
+      setGrandTotal(calculatedGrandTotal)
+
+      if (calculatedGrandTotal > 0) {
+        const words = numberToWords(calculatedGrandTotal)
+        console.log('Generated amount in words:', words)
+        setTotalAmountWords(words)
+      }
     } else {
-      setTotalAmountWords('')
+      setGstTotal(0)
+      const balanceAmount = balance ? parseFloat(balance) : 0
+      const calculatedGrandTotal = calculatedTotal + balanceAmount
+      setGrandTotal(calculatedGrandTotal)
+
+      if (calculatedGrandTotal > 0) {
+        const words = numberToWords(calculatedGrandTotal)
+        console.log('Generated amount in words:', words)
+        setTotalAmountWords(words)
+      }
     }
-  }, [items, balance])
+  }, [items, balance, billType, isGstEnabled, cgstPercent, igstPercent])
 
   const handleAddItem = () => {
     setItems([...items, {}])
@@ -262,17 +317,26 @@ export default function EditBillPage() {
       // Update bill
       const billUpdateData = {
         bill_type: billType,
-        party_name: partyName,
         bill_date: billDate,
         total_amount: totalAmount,
         total_amount_words: totalAmountWords,
-        gst_number: billType === 'pakki' ? COMPANY_INFO.gst : null,
         vehicle_number: vehicleNumber || null,
         balance: balance ? parseFloat(balance) : null,
         bank_name: billType === 'pakki' ? bankName : null,
         bank_ifsc: billType === 'pakki' ? bankIFSC : null,
         bank_account: billType === 'pakki' ? bankAccount : null,
-        notes: notes || null
+        notes: notes || null,
+        // GST fields
+        is_gst_enabled: isGstEnabled,
+        company_gst_number: billType === 'pakki' ? COMPANY_INFO.gst : null,
+        party_gst_number: partyGst || null,
+        cgst_percent: isGstEnabled ? cgstPercent : 0,
+        igst_percent: isGstEnabled ? igstPercent : 0,
+        sgst_percent: 0, // Not used in current implementation
+        cgst_amount: isGstEnabled ? (totalAmount * cgstPercent / 100) : 0,
+        igst_amount: isGstEnabled ? (totalAmount * igstPercent / 100) : 0,
+        sgst_amount: 0, // Not used in current implementation
+        gst_total: gstTotal
       }
 
       console.log('Bill update data:', billUpdateData)
@@ -579,17 +643,6 @@ export default function EditBillPage() {
                   />
                 </div>
 
-                {/* Notes */}
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Notes</Label>
-                  <Input
-                    placeholder="Add any additional notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
-                </div>
-
                 {/* Save Button */}
                 <Button
                   onClick={handleSaveBill}
@@ -601,6 +654,25 @@ export default function EditBillPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* GST Toggle Section (PAKKI ONLY) */}
+            {billType === 'pakki' && (
+              <div className="bg-white shadow-md rounded-lg p-4">
+                <GSTToggle
+                  isEnabled={isGstEnabled}
+                  onToggle={setIsGstEnabled}
+                  cgstPercent={cgstPercent}
+                  igstPercent={igstPercent}
+                  onPercentChange={(type: 'cgst' | 'igst', value: number) => {
+                    if (type === 'cgst') setCgstPercent(value)
+                    else if (type === 'igst') setIgstPercent(value)
+                  }}
+                  itemsTotal={totalAmount}
+                  partyGst={partyGst}
+                  onPartyGstChange={(value: string) => setPartyGst(value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Preview Section */}
@@ -610,6 +682,7 @@ export default function EditBillPage() {
               billNumber={`${billType === 'kacchi' ? 'K' : 'P'}${String(billNumber || 0).padStart(3, '0')}`}
               billDate={billDate}
               partyName={partyName}
+              partyGst={isGstEnabled ? partyGst : undefined}
               vehicleNumber={vehicleNumber}
               balance={balance ? parseFloat(balance) : undefined}
               bankName={billType === 'pakki' ? bankName : undefined}
@@ -617,7 +690,12 @@ export default function EditBillPage() {
               bankAccount={billType === 'pakki' ? bankAccount : undefined}
               showBankDetails={showBankDetails}
               items={items}
-              totalAmount={totalAmount}
+              itemsTotal={totalAmount}
+              gstEnabled={isGstEnabled}
+              cgstPercent={isGstEnabled ? cgstPercent : 0}
+              igstPercent={isGstEnabled ? igstPercent : 0}
+              gstTotal={gstTotal}
+              grandTotal={grandTotal}
               totalAmountWords={totalAmountWords}
             />
           </div>

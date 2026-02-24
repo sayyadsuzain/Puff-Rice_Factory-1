@@ -11,6 +11,8 @@ export default function BillPrintPage() {
 
   const [bill, setBill] = useState<Bill | null>(null)
   const [items, setItems] = useState<BillItem[]>([])
+  const [partyName, setPartyName] = useState('')
+  const [partyGst, setPartyGst] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -29,6 +31,20 @@ export default function BillPrintPage() {
 
       setBill(billData)
 
+      // Fetch party information
+      if (billData.party_id) {
+        const { data: partyData, error: partyError } = await supabase
+          .from('parties')
+          .select('name, gst_number')
+          .eq('id', billData.party_id)
+          .single()
+
+        if (!partyError && partyData) {
+          setPartyName(partyData.name)
+          setPartyGst(partyData.gst_number || '')
+        }
+      }
+
       const { data: itemsData, error: itemsError } = await supabase
         .from('bill_items')
         .select('*')
@@ -38,6 +54,8 @@ export default function BillPrintPage() {
       if (itemsError) throw itemsError
 
       setItems(itemsData || [])
+      console.log('BILL DATA FOR PRINTING:', billData)
+      console.log('ITEMS DATA FOR PRINTING:', itemsData)
     } catch (error) {
       console.error('Error fetching bill details:', error)
     } finally {
@@ -62,7 +80,7 @@ export default function BillPrintPage() {
 
   return (
     <div className="p-8">
-      <BillDisplay bill={bill} items={items} />
+      <BillDisplay bill={bill} items={items} partyName={partyName} partyGst={partyGst} />
     </div>
   )
 }
