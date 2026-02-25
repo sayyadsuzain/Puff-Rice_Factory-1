@@ -325,7 +325,6 @@ export default function EditBillPage() {
         bank_name: billType === 'pakki' ? bankName : null,
         bank_ifsc: billType === 'pakki' ? bankIFSC : null,
         bank_account: billType === 'pakki' ? bankAccount : null,
-        notes: notes || null,
         // GST fields
         is_gst_enabled: isGstEnabled,
         company_gst_number: billType === 'pakki' ? COMPANY_INFO.gst : null,
@@ -416,43 +415,47 @@ export default function EditBillPage() {
 
   if (fetchLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-muted-foreground">Loading bill data...</p>
-            <p className="text-sm text-gray-500">Bill ID: {billId}</p>
-            <p className="text-xs text-gray-400">This may take a few seconds</p>
-            <Link href={`/bills/${billId}`}>
-              <Button variant="outline" size="sm">
-                Back to Bill View
-              </Button>
-            </Link>
+      <ProtectedRoute>
+        <div className="container mx-auto py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-muted-foreground">Loading bill data...</p>
+              <p className="text-sm text-gray-500">Bill ID: {billId}</p>
+              <p className="text-xs text-gray-400">This may take a few seconds</p>
+              <Link href={`/bills/${billId}`}>
+                <Button variant="outline" size="sm">
+                  Back to Bill View
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </ProtectedRoute>
     )
   }
 
   if (fetchError) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="text-red-500 text-6xl">⚠️</div>
-            <h2 className="text-xl font-semibold text-red-600">Failed to Load Bill</h2>
-            <p className="text-muted-foreground max-w-md">{fetchError}</p>
-            <div className="flex gap-4 justify-center">
-              <Button onClick={() => window.location.reload()} variant="outline">
-                Retry
-              </Button>
-              <Link href="/bills">
-                <Button>Back to Bills</Button>
-              </Link>
+      <ProtectedRoute>
+        <div className="container mx-auto py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <div className="text-red-500 text-6xl">⚠️</div>
+              <h2 className="text-xl font-semibold text-red-600">Failed to Load Bill</h2>
+              <p className="text-muted-foreground max-w-md">{fetchError}</p>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={() => window.location.reload()} variant="outline">
+                  Retry
+                </Button>
+                <Link href="/bills">
+                  <Button>Back to Bills</Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ProtectedRoute>
     )
   }
 
@@ -477,119 +480,110 @@ export default function EditBillPage() {
                 <CardTitle className="text-lg md:text-xl">Edit Bill</CardTitle>
                 <CardDescription className="text-sm md:text-base">Update bill details below</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 md:space-y-6">
-                {/* Bill Type */}
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Bill Type</Label>
-                  <Select value={billType} onValueChange={(value) => setBillType(value as 'kacchi' | 'pakki')}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="kacchi">Kacchi (Cash)</SelectItem>
-                      <SelectItem value="pakki">Pakki (Credit/GST)</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <CardContent className="space-y-6 md:space-y-8">
+
+                {/* STEP 1: BILL TYPE & DATE */}
+                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                  <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                    <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
+                    Basic Information
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm md:text-base font-medium">Bill Type</Label>
+                      <Select value={billType} onValueChange={(value) => setBillType(value as 'kacchi' | 'pakki')}>
+                        <SelectTrigger className="w-full" suppressHydrationWarning>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kacchi">Kacchi (Cash)</SelectItem>
+                          <SelectItem value="pakki">Pakki (Credit/GST)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm md:text-base font-medium">Bill Date</Label>
+                      <Input
+                        type="date"
+                        value={billDate}
+                        onChange={(e) => setBillDate(e.target.value)}
+                        className="text-sm md:text-base"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Bill Number: <span className="font-semibold text-blue-700">{billType === 'kacchi' ? 'K' : 'P'}{String(billNumber || 0).padStart(3, '0')}</span>
+                  </div>
                 </div>
 
-                {/* Bill Number & Date - Responsive Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                {/* STEP 2: PARTY INFORMATION */}
+                <div className="space-y-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                  <h3 className="text-lg font-semibold text-green-900 flex items-center gap-2">
+                    <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
+                    Party Information
+                  </h3>
+
                   <div className="space-y-2">
-                    <Label className="text-sm md:text-base">Bill No.</Label>
-                    <Input value={`${billType === 'kacchi' ? 'K' : 'P'}${String(billNumber || 0).padStart(3, '0')}`} disabled className="bg-muted text-sm md:text-base" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm md:text-base">Date</Label>
+                    <Label className="text-sm md:text-base font-medium">Party Name (M/s.)</Label>
                     <Input
-                      type="date"
-                      value={billDate}
-                      onChange={(e) => setBillDate(e.target.value)}
+                      placeholder="Enter customer/party name"
+                      value={partyName}
+                      onChange={(e) => setPartyName(e.target.value)}
                       className="text-sm md:text-base"
                     />
                   </div>
+
+                  {partyGst && billType === 'pakki' && (
+                    <div className="text-sm text-green-700 bg-green-100 p-2 rounded">
+                      Party GST: <span className="font-semibold">{partyGst}</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Party Name */}
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Party Name (M/s.)</Label>
-                  <Input
-                    placeholder="Enter customer/party name"
-                    value={partyName}
-                    onChange={(e) => setPartyName(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
-                </div>
+                {/* STEP 3: VEHICLE & LOGISTICS */}
+                <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                  <h3 className="text-lg font-semibold text-yellow-900 flex items-center gap-2">
+                    <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</span>
+                    Vehicle & Logistics
+                  </h3>
 
-                {/* Vehicle Number */}
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Vehicle Number</Label>
-                  <Input
-                    placeholder="e.g., MH-12-AB-1234"
-                    value={vehicleNumber}
-                    onChange={(e) => setVehicleNumber(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
-                </div>
-
-                {/* Bank Details (Only for Pakki bills) */}
-                {billType === 'pakki' && (
-                  <div className="space-y-3 md:space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <Label className="text-sm md:text-base font-semibold">Bank Details</Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowBankDetails(!showBankDetails)}
-                        className="text-xs md:text-sm"
-                      >
-                        {showBankDetails ? 'Hide' : 'Show'} Bank Details
-                      </Button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm md:text-base font-medium">Vehicle Number</Label>
+                      <Input
+                        placeholder="e.g., MH-12-AB-1234"
+                        value={vehicleNumber}
+                        onChange={(e) => setVehicleNumber(e.target.value)}
+                        className="text-sm md:text-base"
+                      />
                     </div>
 
-                    {showBankDetails && (
-                      <div className="space-y-3 md:space-y-4 p-3 md:p-4 border rounded-lg bg-gray-50">
-                        {/* Bank Name */}
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">Bank Name</Label>
-                          <Input
-                            placeholder="e.g., KARNATAKA BANK LTD."
-                            value={bankName}
-                            onChange={(e) => setBankName(e.target.value)}
-                            className="text-sm md:text-base"
-                          />
-                        </div>
-
-                        {/* Bank IFSC */}
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">IFSC Code</Label>
-                          <Input
-                            placeholder="e.g., KARB0000729"
-                            value={bankIFSC}
-                            onChange={(e) => setBankIFSC(e.target.value)}
-                            className="text-sm md:text-base"
-                          />
-                        </div>
-
-                        {/* Bank Account */}
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">Account Number</Label>
-                          <Input
-                            placeholder="e.g., 7292000100047001"
-                            value={bankAccount}
-                            onChange={(e) => setBankAccount(e.target.value)}
-                            className="text-sm md:text-base"
-                          />
-                        </div>
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label className="text-sm md:text-base font-medium">Balance Amount (₹)</Label>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={balance}
+                        onChange={(e) => setBalance(e.target.value)}
+                        step="0.01"
+                        className="text-sm md:text-base"
+                      />
+                    </div>
                   </div>
-                )}
+                </div>
 
-                {/* Items Section */}
-                <div className="space-y-3 md:space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm md:text-base font-semibold">Items</Label>
+                {/* STEP 4: ITEMS (MAIN CONTENT) */}
+                <div className="space-y-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                  <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                    <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</span>
+                    Items & Products
+                  </h3>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <Label className="text-sm md:text-base font-semibold">Bill Items</Label>
                     <Button
                       type="button"
                       variant="outline"
@@ -601,9 +595,19 @@ export default function EditBillPage() {
                     </Button>
                   </div>
 
-                  <div className="space-y-3 md:space-y-4 max-h-64 md:max-h-96 overflow-y-auto border rounded-md p-2 md:p-4">
+                  <div className="space-y-3 md:space-y-4 max-h-80 md:max-h-96 overflow-y-auto border rounded-md p-3 md:p-4 bg-white">
                     {items.length === 0 ? (
-                      <p className="text-xs md:text-sm text-muted-foreground text-center py-4 md:py-8">No items added yet</p>
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground text-sm mb-3">No items added yet</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAddItem}
+                        >
+                          Add First Item
+                        </Button>
+                      </div>
                     ) : (
                       items.map((item, index) => (
                         <BillItemForm
@@ -616,63 +620,113 @@ export default function EditBillPage() {
                       ))
                     )}
                   </div>
+
+                  {/* Items Summary */}
+                  <div className="bg-white p-3 rounded border">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Items Sub Total:</span>
+                      <span className="text-lg font-bold text-purple-600">₹{totalAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Total Amount - Read Only */}
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Total Amount (₹)</Label>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={totalAmount.toFixed(2)}
-                    readOnly
-                    className="bg-muted text-sm md:text-base"
-                    step="0.01"
-                  />
-                  <p className="text-xs text-muted-foreground">Total is auto-calculated from items</p>
+                {/* STEP 5: GST SETTINGS (PAKKI ONLY) */}
+                {billType === 'pakki' && (
+                  <div className="space-y-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
+                    <h3 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+                      <span className="bg-indigo-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">5</span>
+                      GST Settings
+                    </h3>
+
+                    <div className="space-y-3">
+                      <div className="bg-white p-3 rounded border">
+                        <Label className="text-sm font-medium">Company GST Number</Label>
+                        <Input
+                          value={COMPANY_INFO.gst}
+                          disabled
+                          className="bg-muted text-sm mt-1"
+                        />
+                      </div>
+
+                      <GSTToggle
+                        isEnabled={isGstEnabled}
+                        onToggle={setIsGstEnabled}
+                        cgstPercent={cgstPercent}
+                        igstPercent={igstPercent}
+                        onPercentChange={(type: 'cgst' | 'igst', value: number) => {
+                          if (type === 'cgst') setCgstPercent(value)
+                          else if (type === 'igst') setIgstPercent(value)
+                        }}
+                        itemsTotal={totalAmount}
+                        partyGst={partyGst}
+                        onPartyGstChange={(value: string) => setPartyGst(value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 6: FINAL REVIEW & SAVE */}
+                <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">6</span>
+                    Final Review
+                  </h3>
+
+                  {/* Totals Summary */}
+                  <div className="bg-white p-4 rounded-lg border space-y-3">
+                    <Label className="text-sm md:text-base font-semibold">Bill Summary</Label>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Items Total:</span>
+                        <span className="font-medium">₹{totalAmount.toFixed(2)}</span>
+                      </div>
+
+                      {billType === 'pakki' && isGstEnabled && (
+                        <div className="flex justify-between">
+                          <span>GST Total:</span>
+                          <span className="font-medium text-indigo-600">₹{gstTotal.toFixed(2)}</span>
+                        </div>
+                      )}
+
+                      {balance && parseFloat(balance) !== 0 && (
+                        <div className="flex justify-between">
+                          <span>Balance:</span>
+                          <span className="font-medium text-orange-600">₹{parseFloat(balance).toFixed(2)}</span>
+                        </div>
+                      )}
+
+                      <div className="border-t pt-2 flex justify-between text-base font-bold">
+                        <span>Grand Total:</span>
+                        <span className="text-green-600">₹{grandTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-sm md:text-base font-medium">Amount in Words</Label>
+                      <Input
+                        placeholder="e.g., Sixty-Five Thousand Only"
+                        value={totalAmountWords}
+                        onChange={(e) => setTotalAmountWords(e.target.value)}
+                        className="text-sm md:text-base"
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Total Amount in Words */}
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Amount in Words</Label>
-                  <Input
-                    placeholder="e.g., Sixty-Five Thousand Only"
-                    value={totalAmountWords}
-                    onChange={(e) => setTotalAmountWords(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
+                {/* UPDATE BILL BUTTON */}
+                <div className="pt-4 border-t">
+                  <Button
+                    onClick={handleSaveBill}
+                    disabled={loading}
+                    className="w-full text-base font-semibold py-3"
+                  >
+                    {loading ? 'Updating Bill...' : 'Update Bill'}
+                  </Button>
                 </div>
-
-                {/* Save Button */}
-                <Button
-                  onClick={handleSaveBill}
-                  disabled={loading}
-                  className="w-full text-sm md:text-base"
-                  size="lg"
-                >
-                  {loading ? 'Updating Bill...' : 'Update Bill'}
-                </Button>
               </CardContent>
             </Card>
-
-            {/* GST Toggle Section (PAKKI ONLY) */}
-            {billType === 'pakki' && (
-              <div className="bg-white shadow-md rounded-lg p-4">
-                <GSTToggle
-                  isEnabled={isGstEnabled}
-                  onToggle={setIsGstEnabled}
-                  cgstPercent={cgstPercent}
-                  igstPercent={igstPercent}
-                  onPercentChange={(type: 'cgst' | 'igst', value: number) => {
-                    if (type === 'cgst') setCgstPercent(value)
-                    else if (type === 'igst') setIgstPercent(value)
-                  }}
-                  itemsTotal={totalAmount}
-                  partyGst={partyGst}
-                  onPartyGstChange={(value: string) => setPartyGst(value)}
-                />
-              </div>
-            )}
           </div>
 
           {/* Preview Section */}
@@ -684,7 +738,7 @@ export default function EditBillPage() {
               partyName={partyName}
               partyGst={isGstEnabled ? partyGst : undefined}
               vehicleNumber={vehicleNumber}
-              balance={balance ? parseFloat(balance) : undefined}
+              balance={balance && parseFloat(balance) > 0 ? parseFloat(balance) : undefined}
               bankName={billType === 'pakki' ? bankName : undefined}
               bankIFSC={billType === 'pakki' ? bankIFSC : undefined}
               bankAccount={billType === 'pakki' ? bankAccount : undefined}

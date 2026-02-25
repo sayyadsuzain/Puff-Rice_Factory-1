@@ -21,6 +21,8 @@ export default function BillDetailPage() {
   const [bill, setBill] = useState<Bill | null>(null)
   const [items, setItems] = useState<BillItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [partyName, setPartyName] = useState('')
+  const [partyGst, setPartyGst] = useState('')
 
   useEffect(() => {
     fetchBillDetails()
@@ -38,6 +40,20 @@ export default function BillDetailPage() {
       if (billError) throw billError
 
       setBill(billData)
+
+      // Fetch party information if we have party_id
+      if (billData.party_id) {
+        const { data: partyData, error: partyError } = await supabase
+          .from('parties')
+          .select('name, gst_number')
+          .eq('id', billData.party_id)
+          .single()
+
+        if (!partyError && partyData) {
+          setPartyName(partyData.name)
+          setPartyGst(partyData.gst_number || '')
+        }
+      }
 
       const { data: itemsData, error: itemsError } = await supabase
         .from('bill_items')
@@ -322,9 +338,17 @@ export default function BillDetailPage() {
             </Link>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl md:text-3xl font-bold truncate">
-                Bill {bill.bill_type === 'kacchi' ? 'K' : 'P'}{String(bill.bill_number).padStart(3, '0')}
+                Bill {(() => {
+                  const billNum = String(bill.bill_number)
+                  if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                    return billNum
+                  } else {
+                    const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                    return `${prefix}${billNum.padStart(3, '0')}`
+                  }
+                })()}
               </h1>
-              <p className="text-sm md:text-base text-muted-foreground truncate">{bill.party_name}</p>
+              <p className="text-sm md:text-base text-muted-foreground truncate">{partyName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -364,7 +388,15 @@ export default function BillDetailPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-base md:text-lg">Delete Bill</AlertDialogTitle>
                   <AlertDialogDescription className="text-sm md:text-base">
-                    Are you sure you want to delete bill {bill.bill_type === 'kacchi' ? 'K' : 'P'}{String(bill.bill_number).padStart(3, '0')}?
+                    Are you sure you want to delete bill {(() => {
+                      const billNum = String(bill.bill_number)
+                      if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                        return billNum
+                      } else {
+                        const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                        return `${prefix}${billNum.padStart(3, '0')}`
+                      }
+                    })()}?
                     This action cannot be undone and will permanently remove the bill and all its items.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -381,7 +413,7 @@ export default function BillDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Bill Display */}
           <div className="lg:col-span-2">
-            <BillDisplay bill={bill} items={items} />
+            <BillDisplay bill={bill} items={items} partyName={partyName} partyGst={partyGst} />
           </div>
 
           {/* Bill Info Sidebar - Hidden during print */}
@@ -393,7 +425,15 @@ export default function BillDetailPage() {
               <CardContent className="space-y-3 md:space-y-4">
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Bill Number</p>
-                  <p className="text-base md:text-lg font-semibold">{bill.bill_type === 'kacchi' ? 'K' : 'P'}{String(bill.bill_number).padStart(3, '0')}</p>
+                  <p className="text-base md:text-lg font-semibold">{(() => {
+                    const billNum = String(bill.bill_number)
+                    if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                      return billNum
+                    } else {
+                      const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                      return `${prefix}${billNum.padStart(3, '0')}`
+                    }
+                  })()}</p>
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Date</p>
@@ -401,7 +441,7 @@ export default function BillDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Party Name</p>
-                  <p className="text-base md:text-lg font-semibold break-words">{bill.party_name}</p>
+                  <p className="text-base md:text-lg font-semibold break-words">{partyName}</p>
                 </div>
                 {bill.vehicle_number && (
                   <div>
@@ -409,7 +449,7 @@ export default function BillDetailPage() {
                     <p className="text-base md:text-lg font-semibold break-all">{bill.vehicle_number}</p>
                   </div>
                 )}
-                {bill.balance !== null && bill.balance !== undefined && (
+                {bill.balance !== null && bill.balance !== undefined && bill.balance > 0 && (
                   <div>
                     <p className="text-xs md:text-sm text-muted-foreground">Balance</p>
                     <p className="text-base md:text-lg font-semibold">₹{bill.balance.toFixed(2)}</p>

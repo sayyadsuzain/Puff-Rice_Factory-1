@@ -210,10 +210,10 @@ export default function BillPreview({
             )}
 
             {balance && balance > 0 && (
-              <>
-                <div className="font-bold mb-1 mt-3 text-sm">BALANCE</div>
-                <div className="text-lg font-bold mb-2">₹ {balance.toFixed(2)}</div>
-              </>
+              <div className="mt-3 flex justify-between items-center">
+                <div className="text-sm font-bold">BALANCE</div>
+                <div className="text-sm font-bold">₹ {balance.toFixed(2)}</div>
+              </div>
             )}
 
             <div className="border-t-2 border-black pt-2 mt-3">

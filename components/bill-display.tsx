@@ -54,9 +54,18 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
             <div className="font-bold">From :</div>
             <div className="text-gray-600">{COMPANY_INFO.name}</div>
           </div>
-          <div className="text-right">
+          <div className="text-center">
             <div className="font-bold">No.</div>
-            <div className="text-lg font-bold text-red-600">{bill.bill_type === 'kacchi' ? 'K' : 'P'}{String(bill.bill_number).padStart(3, '0')}</div>
+            <div className="text-lg font-bold text-red-600">{(() => {
+              const billNum = String(bill.bill_number)
+              if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                const numPart = billNum.substring(1)
+                return billNum.charAt(0) + numPart.padStart(3, '0')
+              } else {
+                const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                return `${prefix}${billNum.padStart(3, '0')}`
+              }
+            })()}</div>
           </div>
           <div className="text-right">
             <div className="font-bold">Date :</div>
@@ -170,11 +179,11 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
               </div>
             )}
 
-            {/* Balance Section - Only show if balance > 0 */}
-            {bill.balance && bill.balance > 0 && (
-              <div className="mt-3">
-                <div className="font-bold mb-1 text-sm">BALANCE</div>
-                <div className="text-lg font-bold mb-2">₹ {bill.balance.toFixed(2)}</div>
+            {/* Balance Section - Show on same line for both bill types */}
+            { bill.balance != null && bill.balance > 0 && (
+              <div className="mt-3 flex justify-between items-center">
+                <div className="text-sm font-bold">BALANCE</div>
+                <div className="text-sm font-bold">₹ {bill.balance.toFixed(2)}</div>
               </div>
             )}
 

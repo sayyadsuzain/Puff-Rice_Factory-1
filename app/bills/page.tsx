@@ -37,7 +37,12 @@ export default function BillsPage() {
       console.log('Connecting to Supabase...')
       const { data, error } = await supabase
         .from('bills')
-        .select('*')
+        .select(`
+          *,
+          parties:party_id (
+            name
+          )
+        `)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -64,7 +69,7 @@ export default function BillsPage() {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(bill =>
-        bill.party_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (bill.parties as any)?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         bill.bill_number.toString().includes(searchTerm)
       )
     }
@@ -158,7 +163,7 @@ export default function BillsPage() {
             <!DOCTYPE html>
             <html>
               <head>
-                <title>Bill ${bill?.bill_type === 'kacchi' ? 'K' : 'P'}${String(bill?.bill_number).padStart(3, '0')}</title>
+                <title>Bill ${bill?.bill_number}</title>
                 <meta charset="UTF-8">
                 <style>
                   /* Import fonts */
@@ -393,10 +398,10 @@ export default function BillsPage() {
                 className="w-full"
               />
               <Tabs value={billTypeFilter} onValueChange={(value) => setBillTypeFilter(value as any)}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="all" className="text-xs md:text-sm">All</TabsTrigger>
-                  <TabsTrigger value="kacchi" className="text-xs md:text-sm">Kacchi</TabsTrigger>
-                  <TabsTrigger value="pakki" className="text-xs md:text-sm">Pakki</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3" suppressHydrationWarning>
+                  <TabsTrigger value="all" className="text-xs md:text-sm" suppressHydrationWarning>All</TabsTrigger>
+                  <TabsTrigger value="kacchi" className="text-xs md:text-sm" suppressHydrationWarning>Kacchi</TabsTrigger>
+                  <TabsTrigger value="pakki" className="text-xs md:text-sm" suppressHydrationWarning>Pakki</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -438,13 +443,24 @@ export default function BillsPage() {
                       {filteredBills.map((bill) => (
                         <TableRow key={bill.id}>
                           <TableCell className="font-semibold whitespace-nowrap">
-                            {bill.bill_type === 'kacchi' ? 'K' : 'P'}{String(bill.bill_number).padStart(3, '0')}
+                            {(() => {
+                              const billNum = String(bill.bill_number)
+                              // Check if bill_number already has prefix (old format: "P001", new format: "1")
+                              if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                                const numPart = billNum.substring(1)
+                                return billNum.charAt(0) + numPart.padStart(3, '0')
+                              } else {
+                                // New format: just number, add prefix
+                                const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                                return `${prefix}${billNum.padStart(3, '0')}`
+                              }
+                            })()}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell whitespace-nowrap">
                             {formatDate(bill.bill_date)}
                           </TableCell>
                           <TableCell className="font-medium max-w-[120px] truncate md:max-w-none md:truncate-none">
-                            {bill.party_name}
+                            {(bill.parties as any)?.name || 'Unknown Party'}
                           </TableCell>
                           <TableCell className="hidden md:table-cell whitespace-nowrap">
                             ₹{bill.total_amount.toFixed(2)}
@@ -499,14 +515,32 @@ export default function BillsPage() {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle className="text-base md:text-lg">Delete Bill</AlertDialogTitle>
                                       <AlertDialogDescription className="text-sm md:text-base">
-                                        Are you sure you want to delete bill {bill.bill_type === 'kacchi' ? 'K' : 'P'}{String(bill.bill_number).padStart(3, '0')}?
+                                        Are you sure you want to delete bill {(() => {
+                                          const billNum = String(bill.bill_number)
+                                          if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                                            const numPart = billNum.substring(1)
+                                            return billNum.charAt(0) + numPart.padStart(3, '0')
+                                          } else {
+                                            const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                                            return `${prefix}${billNum.padStart(3, '0')}`
+                                          }
+                                        })()}?
                                         This action cannot be undone and will permanently remove the bill and all its items.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                                       <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                                       <AlertDialogAction
-                                        onClick={() => handleDelete(bill.id, `${bill.bill_type === 'kacchi' ? 'K' : 'P'}${String(bill.bill_number).padStart(3, '0')}`)}
+                                        onClick={() => handleDelete(bill.id, (() => {
+                                          const billNum = String(bill.bill_number)
+                                          if (billNum.startsWith('P') || billNum.startsWith('K')) {
+                                            const numPart = billNum.substring(1)
+                                            return billNum.charAt(0) + numPart.padStart(3, '0')
+                                          } else {
+                                            const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
+                                            return `${prefix}${billNum.padStart(3, '0')}`
+                                          }
+                                        })())}
                                         className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
                                       >
                                         Delete

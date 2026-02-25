@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic'
 
 export default function CreateBillPage() {
   // Bill Type & Header
-  const [billType, setBillType] = useState<'kacchi' | 'pakki'>('pakki')
+  const [billType, setBillType] = useState<'kacchi' | 'pakki'>('kacchi')
   const [billDate, setBillDate] = useState(new Date().toISOString().split('T')[0])
   const [nextBillNumber, setNextBillNumber] = useState<string | null>(null)
 
@@ -52,8 +52,7 @@ export default function CreateBillPage() {
   const [grandTotal, setGrandTotal] = useState(0)
   const [totalAmountWords, setTotalAmountWords] = useState('')
 
-  // Additional Fields
-  const [notes, setNotes] = useState('')
+  // Loading state
   const [loading, setLoading] = useState(false)
 
   // Fetch initial data
@@ -62,12 +61,15 @@ export default function CreateBillPage() {
     fetchSavedBankDetails()
   }, [])
 
-  // Auto-format vehicle number to uppercase
-  useEffect(() => {
-    if (vehicleNumber) {
-      setVehicleNumber(vehicleNumber.toUpperCase())
+  const getFinancialYear = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1 // 1-12
+    if (month >= 4) {
+      return `${year}-${(year + 1) % 100}` // 2025-26
+    } else {
+      return `${year - 1}-${year % 100}` // 2024-25
     }
-  }, [vehicleNumber])
+  }
 
   // Auto-calculate totals when items or GST change
   useEffect(() => {
@@ -100,10 +102,33 @@ export default function CreateBillPage() {
   }, [items, isGstEnabled, cgstPercent, igstPercent, balance, billType])
 
   const fetchNextBillNumber = async () => {
-    // Simplified approach: just use default values
-    // Bill numbers will be properly generated when saving
-    const fallback = billType === 'pakki' ? 'P001' : 'K001'
-    setNextBillNumber(fallback)
+    try {
+      const fy = getFinancialYear(new Date())
+      const prefix = billType === 'pakki' ? 'P' : 'K'
+      const pattern = `${prefix}/${fy}/%`
+      const { data } = await supabase
+        .from('bills')
+        .select('bill_number')
+        .ilike('bill_number', pattern)
+        .order('bill_number', { ascending: false })
+        .limit(1)
+
+      let runningNumber = 1
+      if (data && data.length > 0) {
+        const lastBill = data[0].bill_number
+        const parts = lastBill.split('/')
+        const numStr = parts[2]
+        runningNumber = parseInt(numStr, 10) + 1
+      }
+      const displayNumber = `${prefix}/${fy}/${runningNumber.toString().padStart(3, '0')}`
+      setNextBillNumber(displayNumber)
+    } catch (error) {
+      // Use fallback if query fails
+      const fy = getFinancialYear(new Date())
+      const prefix = billType === 'pakki' ? 'P' : 'K'
+      const displayNumber = `${prefix}/${fy}/001`
+      setNextBillNumber(displayNumber)
+    }
   }
 
   const fetchSavedBankDetails = async () => {
@@ -265,37 +290,35 @@ export default function CreateBillPage() {
 
     try {
       // Generate fresh bill number before saving
-      let billNumber = nextBillNumber
-      if (!billNumber || billNumber === 'P001' || billNumber === 'K001') {
-        try {
-          const prefix = billType === 'pakki' ? 'P' : 'K'
-          const { data } = await supabase
-            .from('bills')
-            .select('bill_number')
-            .ilike('bill_number', `${prefix}%`)
-            .order('bill_number', { ascending: false })
-            .limit(1)
+      let displayNumber: string
+      try {
+        const fy = getFinancialYear(new Date())
+        const prefix = billType === 'pakki' ? 'P' : 'K'
+        const pattern = `${prefix}/${fy}/%`
+        const { data } = await supabase
+          .from('bills')
+          .select('bill_number')
+          .ilike('bill_number', pattern)
+          .order('bill_number', { ascending: false })
+          .limit(1)
 
-          let nextNumber = 1
-          if (data && data.length > 0 && data[0].bill_number) {
-            const billNumStr = data[0].bill_number
-            if (billNumStr && billNumStr.startsWith(prefix)) {
-              const numPart = billNumStr.substring(1)
-              const currentNumber = parseInt(numPart, 10)
-              if (!isNaN(currentNumber)) {
-                nextNumber = currentNumber + 1
-              }
-            }
-          }
-          billNumber = `${prefix}${nextNumber.toString().padStart(3, '0')}`
-        } catch (error) {
-          // Use fallback if query fails
-          billNumber = billType === 'pakki' ? 'P001' : 'K001'
+        let runningNumber = 1
+        if (data && data.length > 0) {
+          const lastBill = data[0].bill_number
+          const parts = lastBill.split('/')
+          const numStr = parts[2]
+          runningNumber = parseInt(numStr, 10) + 1
         }
+        displayNumber = `${prefix}/${fy}/${runningNumber.toString().padStart(3, '0')}`
+      } catch (error) {
+        // Use fallback if query fails
+        const fy = getFinancialYear(new Date())
+        const prefix = billType === 'pakki' ? 'P' : 'K'
+        displayNumber = `${prefix}/${fy}/001`
       }
 
       const billData = {
-        bill_number: billNumber,
+        bill_number: displayNumber, // Store the display number
         bill_type: billType,
         party_id: selectedPartyId,
         bill_date: billDate,
@@ -317,8 +340,7 @@ export default function CreateBillPage() {
         // Bank details
         bank_name: billType === 'pakki' ? bankName : null,
         bank_ifsc: billType === 'pakki' ? bankIFSC : null,
-        bank_account: billType === 'pakki' ? bankAccount : null,
-        notes: notes || null
+        bank_account: billType === 'pakki' ? bankAccount : null
       }
 
       const { data: billResult, error: billError } = await supabase
@@ -397,169 +419,106 @@ export default function CreateBillPage() {
               <CardTitle className="text-lg md:text-xl">Create New Bill</CardTitle>
               <CardDescription className="text-sm md:text-base">Fill in the bill details below</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 md:space-y-6">
+            <CardContent className="space-y-6 md:space-y-8">
 
-              {/* 1. BILL TYPE SELECTION */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Bill Type</Label>
-                <Select value={billType} onValueChange={handleBillTypeChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="kacchi">Kacchi (Cash)</SelectItem>
-                    <SelectItem value="pakki">Pakki (Credit/GST)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* STEP 1: BILL TYPE & DATE */}
+              <div className="space-y-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                  <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
+                  Basic Information
+                </h3>
 
-              {/* 2. BILL HEADER SECTION */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Bill No.</Label>
-                  <Input value={nextBillNumber || ''} disabled className="bg-muted text-sm md:text-base" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Date</Label>
-                  <Input
-                    type="date"
-                    value={billDate}
-                    onChange={(e) => setBillDate(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
-                </div>
-              </div>
-
-              {/* 3. PARTY INFORMATION SECTION */}
-              <PartySearch
-                value={partyName}
-                onChange={handlePartySelect}
-                required
-              />
-
-              {/* 4. VEHICLE & BALANCE SECTION */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Vehicle Number</Label>
-                  <Input
-                    placeholder="e.g., MH-12-AB-1234"
-                    value={vehicleNumber}
-                    onChange={(e) => setVehicleNumber(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Balance (₹)</Label>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={balance}
-                    onChange={(e) => setBalance(e.target.value)}
-                    step="0.01"
-                    className="text-sm md:text-base"
-                  />
-                </div>
-              </div>
-
-              {/* 5. GST NUMBER SECTION (PAKKI ONLY) */}
-              {billType === 'pakki' && (
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">GST Number</Label>
-                  <Input
-                    value={COMPANY_INFO.gst}
-                    disabled
-                    className="bg-muted text-sm md:text-base"
-                  />
-                </div>
-              )}
-
-              {/* 6. BANK DETAILS SECTION (PAKKI ONLY) */}
-              {billType === 'pakki' && (
-                <div className="space-y-3 md:space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <Label className="text-sm md:text-base font-semibold">Bank Details</Label>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowBankDetails(!showBankDetails)}
-                        className="text-xs md:text-sm"
-                      >
-                        {showBankDetails ? 'Hide' : 'Show'} Bank Details
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        onClick={handleSaveBankDetails}
-                        className="text-xs md:text-sm"
-                      >
-                        + Save Bank
-                      </Button>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm md:text-base font-medium">Bill Type</Label>
+                    <Select value={billType} onValueChange={handleBillTypeChange}>
+                      <SelectTrigger className="w-full" suppressHydrationWarning>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kacchi">Kacchi (Cash)</SelectItem>
+                        <SelectItem value="pakki">Pakki (Credit/GST)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {showBankDetails && (
-                    <div className="space-y-3 md:space-y-4 p-3 md:p-4 border rounded-lg bg-gray-50">
-                      {/* Saved Bank Details Selector */}
-                      {savedBankDetails.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">Use Saved Bank Details</Label>
-                          <Select onValueChange={(value) => loadBankDetails(savedBankDetails[parseInt(value)])}>
-                            <SelectTrigger className="text-sm md:text-base">
-                              <SelectValue placeholder="Select from saved banks..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {savedBankDetails.map((bank, index) => (
-                                <SelectItem key={bank.id || index} value={index.toString()}>
-                                  {bank.bank_name} - {bank.bank_account}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-
-                      {/* Bank Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">Bank Name</Label>
-                          <Input
-                            placeholder="e.g., KARNATAKA BANK LTD."
-                            value={bankName}
-                            onChange={(e) => setBankName(e.target.value)}
-                            className="text-sm md:text-base"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">IFSC Code</Label>
-                          <Input
-                            placeholder="e.g., KARB0000729"
-                            value={bankIFSC}
-                            onChange={(e) => setBankIFSC(e.target.value)}
-                            className="text-sm md:text-base"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs md:text-sm">Account Number</Label>
-                          <Input
-                            placeholder="e.g., 7292000100047001"
-                            value={bankAccount}
-                            onChange={(e) => setBankAccount(e.target.value)}
-                            className="text-sm md:text-base"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label className="text-sm md:text-base font-medium">Bill Date</Label>
+                    <Input
+                      type="date"
+                      value={billDate}
+                      onChange={(e) => setBillDate(e.target.value)}
+                      className="text-sm md:text-base"
+                    />
+                  </div>
                 </div>
-              )}
 
-              {/* 7. ITEMS SECTION */}
-              <div className="space-y-3 md:space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm md:text-base font-semibold">Items</Label>
+                <div className="text-sm text-muted-foreground">
+                  Bill No. will be auto-generated: <span className="font-semibold text-blue-700">{nextBillNumber}</span>
+                </div>
+              </div>
+
+              {/* STEP 2: PARTY SELECTION */}
+              <div className="space-y-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                <h3 className="text-lg font-semibold text-green-900 flex items-center gap-2">
+                  <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
+                  Party Information
+                </h3>
+
+                <PartySearch
+                  value={partyName}
+                  onChange={handlePartySelect}
+                  required
+                />
+
+                {partyGst && billType === 'pakki' && (
+                  <div className="text-sm text-green-700 bg-green-100 p-2 rounded">
+                    Party GST: <span className="font-semibold">{partyGst}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* STEP 3: VEHICLE & LOGISTICS */}
+              <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                <h3 className="text-lg font-semibold text-yellow-900 flex items-center gap-2">
+                  <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</span>
+                  Vehicle & Logistics
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm md:text-base font-medium">Vehicle Number</Label>
+                    <Input
+                      placeholder="e.g., MH-12-AB-1234"
+                      value={vehicleNumber}
+                      onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+                      className="text-sm md:text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm md:text-base font-medium">Balance Amount (₹)</Label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={balance}
+                      onChange={(e) => setBalance(e.target.value)}
+                      step="0.01"
+                      className="text-sm md:text-base"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* STEP 4: ITEMS (MAIN CONTENT) */}
+              <div className="space-y-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                  <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</span>
+                  Items & Products
+                </h3>
+
+                <div className="flex items-center justify-between mb-4">
+                  <Label className="text-sm md:text-base font-semibold">Bill Items</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -571,9 +530,19 @@ export default function CreateBillPage() {
                   </Button>
                 </div>
 
-                <div className="space-y-3 md:space-y-4 max-h-64 md:max-h-96 overflow-y-auto border rounded-md p-2 md:p-4">
+                <div className="space-y-3 md:space-y-4 max-h-80 md:max-h-96 overflow-y-auto border rounded-md p-3 md:p-4 bg-white">
                   {items.length === 0 ? (
-                    <p className="text-xs md:text-sm text-muted-foreground text-center py-4 md:py-8">No items added yet</p>
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-sm mb-3">No items added yet</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddItem}
+                      >
+                        Add First Item
+                      </Button>
+                    </div>
                   ) : (
                     items.map((item, index) => (
                       <BillItemForm
@@ -587,89 +556,204 @@ export default function CreateBillPage() {
                   )}
                 </div>
 
-                {/* Items Sub Total */}
-                <div className="flex justify-end pt-2 border-t">
-                  <div className="text-sm">
-                    <span className="font-medium">Sub Total: ₹{itemsTotal.toFixed(2)}</span>
+                {/* Items Summary */}
+                <div className="bg-white p-3 rounded border">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Items Sub Total:</span>
+                    <span className="text-lg font-bold text-purple-600">₹{itemsTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* 8. GST TOGGLE SECTION (PAKKI ONLY) */}
+              {/* STEP 5: GST SETTINGS (PAKKI ONLY) */}
               {billType === 'pakki' && (
-                <GSTToggle
-                  isEnabled={isGstEnabled}
-                  onToggle={setIsGstEnabled}
-                  cgstPercent={cgstPercent}
-                  igstPercent={igstPercent}
-                  onPercentChange={(type, value) => {
-                    if (type === 'cgst') setCgstPercent(value)
-                    else if (type === 'igst') setIgstPercent(value)
-                  }}
-                  itemsTotal={itemsTotal}
-                  partyGst={partyGst}
-                  onPartyGstChange={setPartyGst}
-                />
+                <div className="space-y-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
+                  <h3 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+                    <span className="bg-indigo-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">5</span>
+                    GST Settings
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="bg-white p-3 rounded border">
+                      <Label className="text-sm font-medium">Company GST Number</Label>
+                      <Input
+                        value={COMPANY_INFO.gst}
+                        disabled
+                        className="bg-muted text-sm mt-1"
+                      />
+                    </div>
+
+                    <GSTToggle
+                      isEnabled={isGstEnabled}
+                      onToggle={setIsGstEnabled}
+                      cgstPercent={cgstPercent}
+                      igstPercent={igstPercent}
+                      onPercentChange={(type, value) => {
+                        if (type === 'cgst') setCgstPercent(value)
+                        else if (type === 'igst') setIgstPercent(value)
+                      }}
+                      itemsTotal={itemsTotal}
+                      partyGst={partyGst}
+                      onPartyGstChange={setPartyGst}
+                    />
+                  </div>
+                </div>
               )}
 
-              {/* 9. TOTALS SECTION */}
-              <div className="space-y-3 md:space-y-4 p-3 md:p-4 border rounded-lg bg-blue-50">
-                <Label className="text-sm md:text-base font-semibold">Totals</Label>
+              {/* STEP 6: PAYMENT & BANK DETAILS (PAKKI ONLY) */}
+              {billType === 'pakki' && (
+                <div className="space-y-4 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                  <h3 className="text-lg font-semibold text-orange-900 flex items-center gap-2">
+                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">6</span>
+                    Payment Details
+                  </h3>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Items Total:</span>
-                    <span>₹{itemsTotal.toFixed(2)}</span>
-                  </div>
-                  {billType === 'pakki' && isGstEnabled && (
-                    <div className="flex justify-between text-sm">
-                      <span>GST Total:</span>
-                      <span>₹{gstTotal.toFixed(2)}</span>
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <Label className="text-sm md:text-base font-semibold">Bank Information</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowBankDetails(!showBankDetails)}
+                          className="text-xs md:text-sm"
+                        >
+                          {showBankDetails ? 'Hide' : 'Show'} Details
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={handleSaveBankDetails}
+                          className="text-xs md:text-sm"
+                        >
+                          + Save Bank
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                  {balance && parseFloat(balance) !== 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span>Balance:</span>
-                      <span>₹{parseFloat(balance).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-base font-bold border-t pt-2">
-                    <span>Grand Total:</span>
-                    <span>₹{grandTotal.toFixed(2)}</span>
+
+                    {showBankDetails && (
+                      <div className="space-y-4 p-4 border rounded-lg bg-white">
+                        {savedBankDetails.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-xs md:text-sm font-medium">Quick Select</Label>
+                            <Select onValueChange={(value) => loadBankDetails(savedBankDetails[parseInt(value)])}>
+                              <SelectTrigger className="text-sm md:text-base" suppressHydrationWarning>
+                                <SelectValue placeholder="Choose from saved banks..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {savedBankDetails.map((bank, index) => (
+                                  <SelectItem key={bank.id || index} value={index.toString()}>
+                                    {bank.bank_name} - {bank.bank_account}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs md:text-sm font-medium">Bank Name</Label>
+                            <Input
+                              placeholder="e.g., KARNATAKA BANK LTD."
+                              value={bankName}
+                              onChange={(e) => setBankName(e.target.value)}
+                              className="text-sm md:text-base"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs md:text-sm font-medium">IFSC Code</Label>
+                            <Input
+                              placeholder="e.g., KARB0000729"
+                              value={bankIFSC}
+                              onChange={(e) => setBankIFSC(e.target.value)}
+                              className="text-sm md:text-base"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs md:text-sm font-medium">Account Number</Label>
+                            <Input
+                              placeholder="e.g., 7292000100047001"
+                              value={bankAccount}
+                              onChange={(e) => setBankAccount(e.target.value)}
+                              className="text-sm md:text-base"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
+              )}
 
-                <div className="space-y-2">
-                  <Label className="text-sm md:text-base">Amount in Words</Label>
-                  <Input
-                    placeholder="Auto-generated from grand total"
-                    value={totalAmountWords}
-                    onChange={(e) => setTotalAmountWords(e.target.value)}
-                    className="text-sm md:text-base"
-                  />
+              {/* STEP 7: FINAL REVIEW */}
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <span className="bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">7</span>
+                  Final Review
+                </h3>
+
+                {/* Totals Summary */}
+                <div className="bg-white p-4 rounded-lg border space-y-3">
+                  <Label className="text-sm md:text-base font-semibold">Bill Summary</Label>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Items Total:</span>
+                      <span className="font-medium">₹{itemsTotal.toFixed(2)}</span>
+                    </div>
+
+                    {billType === 'pakki' && isGstEnabled && (
+                      <div className="flex justify-between">
+                        <span>GST Total:</span>
+                        <span className="font-medium text-indigo-600">₹{gstTotal.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {balance && parseFloat(balance) !== 0 && (
+                      <div className="flex justify-between">
+                        <span>Balance:</span>
+                        <span className="font-medium text-orange-600">₹{parseFloat(balance).toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    <div className="border-t pt-2 flex justify-between text-base font-bold">
+                      <span>Grand Total:</span>
+                      <span className="text-green-600">₹{grandTotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t">
+                    <Label className="text-sm md:text-base font-medium">Amount in Words</Label>
+                    <Input
+                      placeholder="Auto-generated from grand total"
+                      value={totalAmountWords}
+                      onChange={(e) => setTotalAmountWords(e.target.value)}
+                      className="text-sm md:text-base"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* 10. NOTES */}
-              <div className="space-y-2">
-                <Label className="text-sm md:text-base">Notes</Label>
-                <Input
-                  placeholder="Add any additional notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="text-sm md:text-base"
-                />
-              </div>
+              {/* CREATE BILL BUTTON */}
+              <div className="pt-4 border-t">
+                <Button
+                  onClick={handleSaveBill}
+                  disabled={loading || !partyName.trim() || items.length === 0}
+                  className="w-full text-base font-semibold py-3"
+                  size="lg"
+                >
+                  {loading ? 'Creating Bill...' : `Create ${billType === 'pakki' ? 'Pakki' : 'Kacchi'} Bill`}
+                </Button>
 
-              {/* 11. CREATE BILL BUTTON */}
-              <Button
-                onClick={handleSaveBill}
-                disabled={loading}
-                className="w-full text-sm md:text-base"
-                size="lg"
-              >
-                {loading ? 'Creating Bill...' : 'Create Bill'}
-              </Button>
+                {(!partyName.trim() || items.length === 0) && (
+                  <p className="text-sm text-muted-foreground mt-2 text-center">
+                    {!partyName.trim() ? 'Select a party' : 'Add at least one item'} to create bill
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -683,7 +767,7 @@ export default function CreateBillPage() {
             partyName={partyName}
             partyGst={isGstEnabled ? partyGst : undefined}
             vehicleNumber={vehicleNumber}
-            balance={balance ? parseFloat(balance) : undefined}
+            balance={balance && parseFloat(balance) > 0 ? parseFloat(balance) : undefined}
             bankName={billType === 'pakki' ? bankName : undefined}
             bankIFSC={billType === 'pakki' ? bankIFSC : undefined}
             bankAccount={billType === 'pakki' ? bankAccount : undefined}
@@ -702,3 +786,4 @@ export default function CreateBillPage() {
     </div>
   )
 }
+
