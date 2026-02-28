@@ -11,8 +11,6 @@ import { supabase, Bill, BillItem, formatDate, formatDateTime } from '@/lib/supa
 import { ArrowLeft, Printer, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import BillDisplay from '@/components/bill-display'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
 import { ProtectedRoute } from '@/components/protected-route'
 
 export default function BillDetailPage() {
@@ -87,6 +85,12 @@ export default function BillDetailPage() {
   }
 
   const handlePrint = () => {
+    // Check if party data is loaded
+    if (!partyName || partyName.trim() === '') {
+      toast.error('Please wait for party data to load before printing')
+      return
+    }
+
     // Create a new window with the exact bill content and styling
     const printWindow = window.open('', '_blank', 'width=900,height=700')
 
@@ -359,6 +363,7 @@ export default function BillDetailPage() {
               variant="outline"
               className="gap-2"
               onClick={handlePrint}
+              disabled={!partyName || partyName.trim() === ''}
             >
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Print Bill as PDF</span>

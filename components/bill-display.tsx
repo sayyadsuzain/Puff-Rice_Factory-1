@@ -1,5 +1,7 @@
 import { Bill, BillItem, COMPANY_INFO, formatDate } from '@/lib/supabase'
-import { Card } from '@/components/ui/card'
+import { numberToWords } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Printer } from 'lucide-react'
 
 interface BillDisplayProps {
   bill: Bill
@@ -11,52 +13,102 @@ interface BillDisplayProps {
 export default function BillDisplay({ bill, items, partyName, partyGst }: BillDisplayProps) {
   const isKacchi = bill.bill_type === 'kacchi'
 
-  // Debug logging
-  console.log('BillDisplay received bill:', bill)
-  console.log('Bill balance:', bill.balance, 'type:', typeof bill.balance)
-  console.log('Bill gst_total:', bill.gst_total, 'type:', typeof bill.gst_total)
-  console.log('Is Kacchi:', isKacchi, 'GST enabled:', bill.is_gst_enabled)
+  // Calculate the final grand total
+  const grandTotal = (bill.total_amount || 0) + (bill.gst_total || 0) + (bill.balance || 0)
+
+  // Calculate total in words for the grand total
+  const totalInWords = numberToWords(grandTotal)
+
+  const handlePrint = () => {
+    window.open(`/api/bill-pdf?id=${bill.id}`, '_blank')
+  }
 
   return (
-    <Card className="bill-display max-w-4xl mx-auto bg-white shadow-lg">
-      <div className="space-y-4">
+    <div
+      className="bill-display"
+      style={{
+        maxWidth: '896px',
+        margin: '0 auto',
+        backgroundColor: 'white',
+        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        padding: '16px'
+      }}
+    >
+      {/* Print Button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <Button onClick={handlePrint} variant="outline" size="sm">
+          <Printer className="h-4 w-4 mr-2" />
+          Print PDF
+        </Button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Header */}
-        <div className="border-b-2 border-red-600 pb-4">
+        <div style={{ borderBottom: '2px solid #dc2626', paddingBottom: '16px' }}>
           {isKacchi ? (
-            <div className="text-center">
-              <div className="inline-block bg-red-600 text-white px-4 py-1 rounded text-sm font-bold mb-2">
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-block',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                padding: '4px 16px',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                marginBottom: '8px'
+              }}>
                 CASH / CREDIT MEMO
               </div>
             </div>
           ) : (
-            <>
-              <div className="text-center mb-2">
-                <div className="text-xs text-gray-600">Subject to Sangli Jurisdiction</div>
+            <div>
+              <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>Subject to Sangli Jurisdiction</div>
               </div>
-              <div className="text-center">
-                <div className="inline-block bg-red-600 text-white px-4 py-1 rounded text-sm font-bold mb-2">
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  display: 'inline-block',
+                  backgroundColor: '#dc2626',
+                  color: 'white',
+                  padding: '4px 16px',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  marginBottom: '8px'
+                }}>
                   CREDIT MEMO
                 </div>
               </div>
-            </>
+            </div>
           )}
 
-          <h1 className="text-center text-3xl font-bold text-red-600 mb-1">{COMPANY_INFO.name}</h1>
-          <p className="text-center text-xs">{COMPANY_INFO.address}</p>
+          <h1 style={{
+            textAlign: 'center',
+            fontSize: '30px',
+            fontWeight: 'bold',
+            color: '#dc2626',
+            marginBottom: '4px'
+          }}>
+            {COMPANY_INFO.name}
+          </h1>
+          <p style={{ textAlign: 'center', fontSize: '12px' }}>
+            {COMPANY_INFO.address}
+          </p>
           {!isKacchi && (
-            <p className="text-center text-xs mt-1">GST IN : {COMPANY_INFO.gst}</p>
+            <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '4px' }}>
+              GST IN : {COMPANY_INFO.gst}
+            </p>
           )}
         </div>
 
         {/* Bill Info */}
-        <div className="grid grid-cols-3 gap-4 text-sm">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', fontSize: '14px', marginTop: '16px' }}>
           <div>
-            <div className="font-bold">From :</div>
-            <div className="text-gray-600">{COMPANY_INFO.name}</div>
+            <div style={{ fontWeight: 'bold' }}>From :</div>
+            <div style={{ color: '#6b7280' }}>{COMPANY_INFO.name}</div>
           </div>
-          <div className="text-center">
-            <div className="font-bold">No.</div>
-            <div className="text-lg font-bold text-red-600">{(() => {
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 'bold' }}>No.</div>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>{(() => {
               const billNum = String(bill.bill_number)
               if (billNum.startsWith('P') || billNum.startsWith('K')) {
                 const numPart = billNum.substring(1)
@@ -67,29 +119,34 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
               }
             })()}</div>
           </div>
-          <div className="text-right">
-            <div className="font-bold">Date :</div>
-            <div className="font-bold">{formatDate(bill.bill_date)}</div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontWeight: 'bold' }}>Date :</div>
+            <div style={{ fontWeight: 'bold' }}>{formatDate(bill.bill_date)}</div>
           </div>
         </div>
 
         {/* Party Details */}
-        <div className="border-t border-b border-gray-300 py-2">
-          <div className="text-sm">
-            <span className="font-bold">M/s. </span>
+        <div style={{
+          borderTop: '1px solid #d1d5db',
+          borderBottom: '1px solid #d1d5db',
+          padding: '8px 0',
+          marginTop: '16px'
+        }}>
+          <div style={{ fontSize: '14px' }}>
+            <span style={{ fontWeight: 'bold' }}>M/s. </span>
             <span>{partyName || '_'.repeat(40)}</span>
           </div>
           {(bill.vehicle_number || (!isKacchi && partyGst)) && (
-            <div className="text-sm mt-1 flex justify-between">
+            <div style={{ fontSize: '14px', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
               {bill.vehicle_number && (
                 <div>
-                  <span className="font-bold">Vehicle No.: </span>
+                  <span style={{ fontWeight: 'bold' }}>Vehicle No.: </span>
                   <span>{bill.vehicle_number}</span>
                 </div>
               )}
               {!isKacchi && partyGst && (
-                <div className={bill.vehicle_number ? "text-right" : ""}>
-                  <span className="font-bold">GST No.: </span>
+                <div style={bill.vehicle_number ? { textAlign: 'right' } : {}}>
+                  <span style={{ fontWeight: 'bold' }}>GST No.: </span>
                   <span>{partyGst}</span>
                 </div>
               )}
@@ -98,14 +155,14 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
         </div>
 
         {/* Items Table */}
-        <table className="w-full text-xs border-collapse">
+        <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse', marginTop: '16px' }}>
           <thead>
-            <tr className="bg-gray-200">
-              <th className="border border-gray-400 p-2 text-left font-bold">Particulars</th>
-              <th className="border border-gray-400 p-2 text-center font-bold w-16">Qty. Bags</th>
-              <th className="border border-gray-400 p-2 text-center font-bold w-20">Weight in Kg.</th>
-              <th className="border border-gray-400 p-2 text-center font-bold w-16">Rate</th>
-              <th className="border border-gray-400 p-2 text-right font-bold w-24">Amount ₹</th>
+            <tr style={{ backgroundColor: '#e5e7eb' }}>
+              <th style={{ border: '1px solid #9ca3af', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Particulars</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '8px', textAlign: 'center', fontWeight: 'bold', width: '64px' }}>Qty. Bags</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '8px', textAlign: 'center', fontWeight: 'bold', width: '80px' }}>Weight in Kg.</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '8px', textAlign: 'center', fontWeight: 'bold', width: '64px' }}>Rate</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '8px', textAlign: 'right', fontWeight: 'bold', width: '96px' }}>Amount ₹</th>
             </tr>
           </thead>
           <tbody>
@@ -113,90 +170,84 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
               const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
               return (
                 <tr key={idx}>
-                  <td className="border border-gray-300 p-2">
+                  <td style={{ border: '1px solid #d1d5db', padding: '8px' }}>
                     <div>{item.particular}</div>
                     {isPaddyItem && item.weight_kg && (
-                      <div className="text-xs text-blue-600">
+                      <div style={{ fontSize: '11px', color: '#2563eb' }}>
                         ({item.weight_kg}kg total)
                       </div>
                     )}
                   </td>
-                  <td className="border border-gray-300 p-2 text-center">{item.qty_bags || ''}</td>
-                  <td className="border border-gray-300 p-2 text-center">
+                  <td style={{ border: '1px solid #d1d5db', padding: '8px', textAlign: 'center' }}>{item.qty_bags || ''}</td>
+                  <td style={{ border: '1px solid #d1d5db', padding: '8px', textAlign: 'center' }}>
                     {isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}
                   </td>
-                  <td className="border border-gray-300 p-2 text-center">
+                  <td style={{ border: '1px solid #d1d5db', padding: '8px', textAlign: 'center' }}>
                     {item.rate ? `${item.rate.toFixed(2)} ${isPaddyItem ? '₹/kg' : '₹'}` : ''}
                   </td>
-                  <td className="border border-gray-300 p-2 text-right">{item.amount?.toFixed(2) || ''}</td>
+                  <td style={{ border: '1px solid #d1d5db', padding: '8px', textAlign: 'right' }}>{item.amount?.toFixed(2) || ''}</td>
                 </tr>
               )
             })}
-            {/* Empty rows for spacing */}
-            {items.length < 3 && (
-              Array.from({ length: 3 - items.length }).map((_, idx) => (
-                <tr key={`empty-${idx}`}>
-                  <td className="border border-gray-300 p-2">&nbsp;</td>
-                  <td className="border border-gray-300 p-2">&nbsp;</td>
-                  <td className="border border-gray-300 p-2">&nbsp;</td>
-                  <td className="border border-gray-300 p-2">&nbsp;</td>
-                  <td className="border border-gray-300 p-2">&nbsp;</td>
-                </tr>
-              ))
-            )}
+            {items.length < 3 && Array.from({ length: 3 - items.length }).map((_, idx) => (
+              <tr key={`empty-${idx}`}>
+                <td style={{ border: '1px solid #d1d5db', padding: '8px' }}>&nbsp;</td>
+                <td style={{ border: '1px solid #d1d5db', padding: '8px' }}>&nbsp;</td>
+                <td style={{ border: '1px solid #d1d5db', padding: '8px' }}>&nbsp;</td>
+                <td style={{ border: '1px solid #d1d5db', padding: '8px' }}>&nbsp;</td>
+                <td style={{ border: '1px solid #d1d5db', padding: '8px' }}>&nbsp;</td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
         {/* Total Section */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px', marginTop: '16px' }}>
           <div>
-            <div className="font-bold">Rs. in Words:</div>
-            <div className="text-xs mt-1">{bill.total_amount_words || ''}</div>
+            <div style={{ fontWeight: 'bold' }}>Rs. in Words:</div>
+            <div style={{ fontSize: '12px', marginTop: '4px' }}>{totalInWords}</div>
           </div>
-          <div className="text-right">
-            <div className="font-bold mb-1">SUB TOTAL</div>
-            <div className="text-lg font-bold border-t border-black pt-1">₹ {bill.total_amount.toFixed(2)}</div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>SUB TOTAL</div>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', borderTop: '1px solid black', paddingTop: '4px' }}>₹ {(bill.total_amount || 0).toFixed(2)}</div>
 
-            {/* GST Section - Only show if GST is enabled and total > 0 */}
-            {!isKacchi && bill.is_gst_enabled && bill.gst_total > 0 && (
-              <div className="mt-3 mb-2">
-                {bill.cgst_percent > 0 && (
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-sm">CGST @ {bill.cgst_percent}%</span>
-                    <span className="font-bold text-sm">₹ {bill.cgst_amount.toFixed(2)}</span>
+            {!isKacchi && bill.is_gst_enabled && (bill.gst_total || 0) > 0 && (
+              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                {(bill.cgst_percent || 0) > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0' }}>
+                    <span style={{ fontSize: '13px' }}>CGST @ {(bill.cgst_percent || 0)}%</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>₹ {(bill.cgst_amount || 0).toFixed(2)}</span>
                   </div>
                 )}
-                {bill.igst_percent > 0 && (
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-sm">IGST @ {bill.igst_percent}%</span>
-                    <span className="font-bold text-sm">₹ {bill.igst_amount.toFixed(2)}</span>
+                {(bill.igst_percent || 0) > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0' }}>
+                    <span style={{ fontSize: '13px' }}>IGST @ {(bill.igst_percent || 0)}%</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>₹ {(bill.igst_amount || 0).toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center py-1 border-t border-gray-300 pt-2 mt-1">
-                  <span className="text-sm font-semibold">GST Total:</span>
-                  <span className="font-bold text-sm">₹ {bill.gst_total.toFixed(2)}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0', borderTop: '1px solid #d1d5db', paddingTop: '4px', marginTop: '4px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>GST Total:</span>
+                  <span style={{ fontWeight: 'bold', fontSize: '13px' }}>₹ {(bill.gst_total || 0).toFixed(2)}</span>
                 </div>
               </div>
             )}
 
-            {/* Balance Section - Show on same line for both bill types */}
-            { bill.balance != null && bill.balance > 0 && (
-              <div className="mt-3 flex justify-between items-center">
-                <div className="text-sm font-bold">BALANCE</div>
-                <div className="text-sm font-bold">₹ {bill.balance.toFixed(2)}</div>
+            {bill.balance != null && bill.balance > 0 && (
+              <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>BALANCE</div>
+                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>₹ {bill.balance.toFixed(2)}</div>
               </div>
             )}
 
-            <div className="border-t-2 border-black pt-2 mt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold">TOTAL</span>
-                <span className="text-xl font-bold">₹ {(bill.total_amount + (bill.gst_total || 0) + (bill.balance || 0)).toFixed(2)}</span>
+            <div style={{ borderTop: '2px solid black', paddingTop: '8px', marginTop: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>TOTAL</span>
+                <span style={{ fontSize: '20px', fontWeight: 'bold' }}>₹ {((bill.total_amount || 0) + (bill.gst_total || 0) + (bill.balance || 0)).toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Company signature below total */}
             {!isKacchi && (
-              <div className="text-xs font-bold text-red-600 mt-4 mb-4">
+              <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#dc2626', marginTop: '16px', marginBottom: '16px' }}>
                 For M S TRADING COMPANY
               </div>
             )}
@@ -204,23 +255,23 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
         </div>
 
         {/* Footer */}
-        <div className="border-t pt-4 flex items-center justify-between text-xs">
-          <div className="flex gap-4">
-            <span className="font-bold text-red-600">Thank you</span>
+        <div style={{ borderTop: '1px solid black', paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <span style={{ fontWeight: 'bold', color: '#dc2626' }}>Thank you</span>
           </div>
         </div>
 
         {/* Bank Details for Pakki */}
         {!isKacchi && bill.bank_name && bill.bank_ifsc && bill.bank_account && (
-          <div className="border-t pt-3 text-xs space-y-1">
-            <div className="grid grid-cols-2 gap-8">
+          <div style={{ borderTop: '1px solid black', paddingTop: '12px', fontSize: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
               <div>
-                <div className="font-bold text-red-600">BANK : {bill.bank_name}</div>
+                <div style={{ fontWeight: 'bold', color: '#dc2626' }}>BANK : {bill.bank_name}</div>
                 <div>IFSC CODE NO. : {bill.bank_ifsc}</div>
                 <div>S. B. No. : {bill.bank_account}</div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-red-600">Contact:</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 'bold', color: '#dc2626' }}>Contact:</div>
                 <div>9860022450</div>
                 <div>9561420666</div>
               </div>
@@ -228,6 +279,6 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
           </div>
         )}
       </div>
-    </Card>
+    </div>
   )
 }

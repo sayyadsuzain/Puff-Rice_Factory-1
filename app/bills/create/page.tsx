@@ -322,8 +322,8 @@ export default function CreateBillPage() {
         bill_type: billType,
         party_id: selectedPartyId,
         bill_date: billDate,
-        total_amount: grandTotal,
-        total_amount_words: totalAmountWords,
+        total_amount: itemsTotal, // Store only items total, not grand total
+        total_amount_words: totalAmountWords, // This should be for the grand total
         vehicle_number: vehicleNumber || null,
         balance: balance ? parseFloat(balance) : 0,
         // GST fields
@@ -340,7 +340,12 @@ export default function CreateBillPage() {
         // Bank details
         bank_name: billType === 'pakki' ? bankName : null,
         bank_ifsc: billType === 'pakki' ? bankIFSC : null,
-        bank_account: billType === 'pakki' ? bankAccount : null
+        bank_account: billType === 'pakki' ? bankAccount : null,
+        // CA reporting fields
+        financial_year: getFinancialYear(new Date(billDate)),
+        month_number: new Date(billDate).getMonth() + 1,
+        taxable_amount: itemsTotal,
+        net_total: grandTotal
       }
 
       const { data: billResult, error: billError } = await supabase
@@ -381,7 +386,11 @@ export default function CreateBillPage() {
       console.log('Bill items created successfully')
 
       toast.success(`Bill created successfully! (${billType})`)
-      window.location.href = `/bills/${billId}`
+
+      // Add a small delay to show the success message before redirect
+      setTimeout(() => {
+        window.location.href = `/bills/${billId}`
+      }, 1500)
     } catch (error) {
       console.error('Error creating bill:', error)
       toast.error('Failed to create bill')

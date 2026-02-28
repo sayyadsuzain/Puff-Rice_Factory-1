@@ -10,15 +10,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { supabase, Bill, formatDate } from '@/lib/supabase'
-import { Plus, Eye, Printer, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Eye, Printer, Edit2, Trash2, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { ProtectedRoute } from '@/components/protected-route'
+
+interface BillWithParties extends Bill {
+  parties?: {
+    name: string
+  }
+}
 
 export const dynamic = 'force-dynamic'
 
 export default function BillsPage() {
-  const [bills, setBills] = useState<Bill[]>([])
-  const [filteredBills, setFilteredBills] = useState<Bill[]>([])
+  const [bills, setBills] = useState<BillWithParties[]>([])
+  const [filteredBills, setFilteredBills] = useState<BillWithParties[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [billTypeFilter, setBillTypeFilter] = useState<'all' | 'kacchi' | 'pakki'>('all')
@@ -69,7 +75,7 @@ export default function BillsPage() {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(bill =>
-        (bill.parties as any)?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bill.parties?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         bill.bill_number.toString().includes(searchTerm)
       )
     }
@@ -363,12 +369,20 @@ export default function BillsPage() {
             <h1 className="text-2xl md:text-3xl font-bold truncate">Bill Management</h1>
             <p className="text-sm md:text-base text-muted-foreground">Manage Kacchi and Pakki bills for puff rice products</p>
           </div>
-          <Link href="/bills/create" className="flex-shrink-0">
-            <Button className="w-full sm:w-auto gap-2">
-              <Plus className="h-4 w-4" />
-              Create Bill
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-shrink-0">
+            <Link href="/reports/ca">
+              <Button variant="outline" className="w-full sm:w-auto gap-2">
+                <FileText className="h-4 w-4" />
+                CA Reports
+              </Button>
+            </Link>
+            <Link href="/bills/create" className="flex-shrink-0">
+              <Button className="w-full sm:w-auto gap-2">
+                <Plus className="h-4 w-4" />
+                Create Bill
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Responsive Stats Cards */}
@@ -460,7 +474,7 @@ export default function BillsPage() {
                             {formatDate(bill.bill_date)}
                           </TableCell>
                           <TableCell className="font-medium max-w-[120px] truncate md:max-w-none md:truncate-none">
-                            {(bill.parties as any)?.name || 'Unknown Party'}
+                            {bill.parties?.name || 'Unknown Party'}
                           </TableCell>
                           <TableCell className="hidden md:table-cell whitespace-nowrap">
                             ₹{bill.total_amount.toFixed(2)}
