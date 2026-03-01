@@ -382,12 +382,13 @@ export async function GET(request: NextRequest) {
 
     const isProd = process.env.NODE_ENV === 'production'
 
+    const executablePath = isProd
+      ? await chromium.executablePath()
+      : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+
     const browser = await puppeteer.launch({
       args: isProd ? chromium.args : [],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: isProd
-        ? await chromium.executablePath()
-        : undefined,
+      executablePath,
       headless: true,
     })
 
