@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
         <style>
           @page {
             size: A4;
@@ -138,14 +138,14 @@ export async function GET(request: NextRequest) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 250px;
+            font-size: 260px;
             font-weight: 400;
-            letter-spacing: 12px;
-            color: rgba(128, 128, 128, 0.14);
+            letter-spacing: 16px;
+            color: rgba(140, 140, 140, 0.18);
             pointer-events: none;
             user-select: none;
             z-index: 0;
-            font-family: "Libre Baskerville", "Times New Roman", Georgia, serif;
+            font-family: "Playfair Display", "Times New Roman", Georgia, serif;
           }
 
           .header-section {
