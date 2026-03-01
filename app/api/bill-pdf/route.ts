@@ -138,13 +138,13 @@ export async function GET(request: NextRequest) {
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 250px;
-            font-weight: 900;
-            letter-spacing: 10px;
-            color: rgba(0, 0, 0, 0.08);
+            font-weight: 400;
+            letter-spacing: 12px;
+            color: rgba(128, 128, 128, 0.12);
             pointer-events: none;
             user-select: none;
             z-index: 0;
-            font-family: "Times New Roman", serif;
+            font-family: "Times New Roman", "Georgia", serif;
           }
 
           .header-section {
