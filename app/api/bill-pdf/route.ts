@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer from 'puppeteer'
+import { launchBrowser } from '@/lib/puppeteer-config'
 import { supabase } from '@/lib/supabase'
+
+export const runtime = 'nodejs'
 
 
 function numberToWords(num: number): string {
@@ -375,10 +377,7 @@ export async function GET(request: NextRequest) {
     `
 
     console.log('🎨 BILL-PDF: Starting Puppeteer...')
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    const browser = await launchBrowser()
 
     console.log('✅ BILL-PDF: Puppeteer launched successfully')
 

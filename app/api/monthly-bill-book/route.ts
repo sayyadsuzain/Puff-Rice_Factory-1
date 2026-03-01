@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer from 'puppeteer'
+import { launchBrowser } from '@/lib/puppeteer-config'
 import { supabase, numberToWords } from '@/lib/supabase'
 import { LOGO_BASE64 } from '@/lib/logo-base64'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -433,10 +435,7 @@ export async function POST(request: NextRequest) {
       </html>
     `
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    const browser = await launchBrowser()
 
     const page = await browser.newPage()
     await page.setContent(fullHTML, { waitUntil: 'networkidle0' })

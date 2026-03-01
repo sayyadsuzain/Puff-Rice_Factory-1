@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer from 'puppeteer'
+import { launchBrowser } from '@/lib/puppeteer-config'
 import { supabase } from '@/lib/supabase'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,10 +50,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Generate PDF
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    const browser = await launchBrowser()
 
     const page = await browser.newPage()
     await page.setContent(reportHTML, { waitUntil: 'networkidle0' })
