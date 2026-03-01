@@ -380,8 +380,11 @@ export async function GET(request: NextRequest) {
     console.log('🎨 BILL-PDF: Starting Puppeteer...')
 
     const browser = await puppeteer.launch({
+      executablePath:
+        process.env.PUPPETEER_EXECUTABLE_PATH ||
+        "/opt/render/.cache/puppeteer/chrome/linux-145.0.7632.77/chrome-linux64/chrome",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
 
     console.log('✅ BILL-PDF: Puppeteer launched successfully')
