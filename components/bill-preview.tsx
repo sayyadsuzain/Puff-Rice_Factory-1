@@ -48,37 +48,37 @@ export default function BillPreview({
 
   return (
     <Card className="p-8 bg-white text-black relative overflow-hidden" style={{ fontFamily: 'Arial, sans-serif', width: '210mm', minHeight: '297mm', margin: '0 auto' }}>
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-      
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
+
       {/* Watermark */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 rotate-12 opacity-[0.08]" 
-           style={{ fontSize: '200px', fontWeight: 700, letterSpacing: '14px', fontFamily: '"Playfair Display", serif', color: '#8c8c8c' }}>
+      <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.06]"
+        style={{ fontSize: '320px', fontWeight: 900, letterSpacing: '25px', fontFamily: '"Playfair Display", serif', color: '#c0c0c0' }}>
         MS
       </div>
 
       <div className="relative z-10 space-y-4 flex flex-col h-full">
         {/* Header */}
-        <div className="border-b-2 border-red-600 pb-4">
-          <div className="grid grid-cols-3 items-center">
-            <div className="text-xs text-gray-600">
+        <div className="border-b-[4px] border-red-600 pb-2 mb-2">
+          <div className="grid grid-cols-3 items-start">
+            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
               {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
             </div>
             <div className="text-center">
-              <div className="inline-block bg-red-600 text-white px-4 py-1 rounded text-sm font-bold mb-2">
+              <div className="inline-block bg-red-600 text-white px-8 py-1 rounded-sm text-[11px] font-black tracking-widest mb-2 shadow-sm uppercase">
                 {isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}
               </div>
             </div>
-            <div className="text-right text-xs space-y-0.5">
-              <div className="font-bold text-gray-700">Contact:</div>
+            <div className="text-right text-[10px] space-y-0.5 font-black text-gray-800">
+              <div className="uppercase">Contact:</div>
               <div>9860022450</div>
               <div>9561420666</div>
             </div>
           </div>
 
-          <h1 className="text-center text-4xl font-black text-red-600 tracking-wider mb-1 mt-2">{COMPANY_INFO.name}</h1>
-          <p className="text-center text-xs tracking-wide text-gray-700">{COMPANY_INFO.address}</p>
+          <h1 className="text-center text-6xl font-black text-red-600 tracking-tight mb-1 mt-1" style={{ textShadow: '1px 1px 0px rgba(0,0,0,0.05)', transform: 'scaleY(1.1)' }}>{COMPANY_INFO.name}</h1>
+          <div className="text-center text-[10px] tracking-widest text-gray-700 font-black uppercase">{COMPANY_INFO.address}</div>
           {!isKacchi && (
-            <p className="text-center text-xs font-bold mt-1">GST IN : {COMPANY_INFO.gst}</p>
+            <p className="text-center text-[11px] font-black mt-1 text-gray-800 tracking-widest uppercase">GST IN : {COMPANY_INFO.gst}</p>
           )}
         </div>
 
@@ -123,18 +123,18 @@ export default function BillPreview({
         </div>
 
         {/* Items Table */}
-        <div className="flex-1 min-h-[300px]">
-          <table className="w-full text-sm border-collapse border border-gray-400">
+        <div className="flex-1 min-h-[450px]">
+          <table className="w-full text-[13px] border-collapse border-b border-gray-400">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-400 p-2 text-left font-bold uppercase text-xs">Particulars</th>
-                <th className="border border-gray-400 p-2 text-center font-bold uppercase text-xs w-20">Qty Bags</th>
-                <th className="border border-gray-400 p-2 text-center font-bold uppercase text-xs w-24">Weight Kg</th>
-                <th className="border border-gray-400 p-2 text-center font-bold uppercase text-xs w-20">Rate</th>
-                <th className="border border-gray-400 p-2 text-right font-bold uppercase text-xs w-28">Amount ₹</th>
+              <tr className="bg-gray-50 border-t border-b border-gray-400">
+                <th className="border-l border-r border-gray-400 p-2 text-left font-black uppercase text-xs tracking-tight">Particulars</th>
+                <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-24">Qty. Bags</th>
+                <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-28">Weight in Kg.</th>
+                <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-24">Rate</th>
+                <th className="border-l border-r border-gray-400 p-2 text-right font-black uppercase text-xs tracking-tight w-32">Amount</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="border-gray-400">
               {items.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="border border-gray-300 p-8 text-center text-gray-400 italic">
@@ -145,8 +145,8 @@ export default function BillPreview({
                 items.map((item, idx) => {
                   const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
                   return (
-                    <tr key={idx} className="h-8">
-                      <td className="border border-gray-300 px-2 py-1.5 font-medium">
+                    <tr key={idx} className="h-8 border-none">
+                      <td className="border-l border-r border-gray-200 px-2 py-1.5 font-medium">
                         <div>{item.particular || ''}</div>
                         {isPaddyItem && item.weight_kg && (
                           <div className="text-[10px] text-blue-600 font-bold">
@@ -154,27 +154,27 @@ export default function BillPreview({
                           </div>
                         )}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1.5 text-center">{item.qty_bags || ''}</td>
-                      <td className="border border-gray-300 px-2 py-1.5 text-center">
+                      <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">{item.qty_bags || ''}</td>
+                      <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">
                         {isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1.5 text-center">
+                      <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">
                         {item.rate ? `${item.rate.toFixed(2)}${isPaddyItem ? ' ₹/kg' : ''}` : ''}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1.5 text-right font-bold">{item.amount?.toFixed(2) || ''}</td>
+                      <td className="border-l border-r border-gray-200 px-2 py-1.5 text-right font-bold">{item.amount?.toFixed(2) || ''}</td>
                     </tr>
                   )
                 })
               )}
               {/* Fill remaining space to match Pic 2's structure */}
-              {items.length < 10 && (
-                Array.from({ length: 10 - items.length }).map((_, idx) => (
-                  <tr key={`empty-${idx}`} className="h-8">
-                    <td className="border border-gray-300 p-2">&nbsp;</td>
-                    <td className="border border-gray-300 p-2 text-center border-l-2 border-r-2 border-gray-300">&nbsp;</td>
-                    <td className="border border-gray-300 p-2 text-center border-l-2 border-r-2 border-gray-300">&nbsp;</td>
-                    <td className="border border-gray-300 p-2 text-center border-l-2 border-r-2 border-gray-300">&nbsp;</td>
-                    <td className="border border-gray-300 p-2 text-right">&nbsp;</td>
+              {items.length < 18 && (
+                Array.from({ length: 18 - items.length }).map((_, idx) => (
+                  <tr key={`empty-${idx}`} className="h-8 border-none">
+                    <td className="border-l border-r border-gray-100 p-2 text-gray-100 select-none">-</td>
+                    <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
+                    <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
+                    <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
+                    <td className="border-l border-r border-gray-100 p-2 text-right text-gray-100 select-none">-</td>
                   </tr>
                 ))
               )}
@@ -250,15 +250,15 @@ export default function BillPreview({
         </div>
 
         {/* Auth Signatory Area */}
-        <div className="mt-8 flex justify-between items-end pb-4">
-          <div className="text-xs font-bold text-red-600 italic">
+        <div className="mt-8 flex justify-between items-end pb-2">
+          <div className="text-[11px] font-bold text-red-600 italic">
             Thank you for your business!
           </div>
           <div className="text-right">
-            <div className="text-xs font-black text-red-600 mb-10 uppercase">
+            <div className="text-[11px] font-black text-red-600 mb-10 uppercase tracking-tight">
               For {COMPANY_INFO.name}
             </div>
-            <div className="text-[10px] font-bold border-t border-gray-400 pt-1 w-32 ml-auto text-center">
+            <div className="text-[10px] font-bold border-t border-gray-400 pt-1 w-36 ml-auto text-center text-gray-500">
               Auth. Signatory
             </div>
           </div>
