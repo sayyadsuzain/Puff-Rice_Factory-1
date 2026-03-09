@@ -104,7 +104,7 @@ export default function BillPreview({
         </div>
 
         {/* Party Details */}
-        <div className="border-t border-b border-gray-300 py-3">
+        <div className="border border-gray-300 rounded-md py-3 px-4">
           <div className="text-base font-medium">
             <span className="font-bold">M/s. </span>
             <span className="border-b border-dotted border-gray-400 min-w-[300px] inline-block">{partyName || ''}</span>
@@ -196,18 +196,6 @@ export default function BillPreview({
                   {grandTotal > 0 ? numberToWords(grandTotal) : ''}
                 </div>
               </div>
-
-              {/* Bank Details Below Words */}
-              {!isKacchi && showBankDetails && bankName && bankIFSC && bankAccount && (
-                <div className="pt-4 text-[11px]">
-                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAIL S:</div>
-                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
-                    <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bankName}</span></div>
-                    <div className="flex gap-2"><span>IFSC CODE NO. :</span> <span className="text-gray-900">{bankIFSC}</span></div>
-                    <div className="flex gap-2"><span>S. B. No. :</span> <span className="text-gray-900">{bankAccount}</span></div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="text-right space-y-1">
@@ -256,14 +244,24 @@ export default function BillPreview({
 
         {/* Auth Signatory Area */}
         <div className="mt-auto pt-6 flex justify-between items-end pb-2">
-          <div className="text-[11px] font-bold text-red-600 italic">
-            Thank you for your business!
+          <div className="text-left w-1/2">
+            {/* Bank Details Moved Here */}
+            {!isKacchi && showBankDetails && bankName && bankIFSC && bankAccount && (
+              <div className="text-[11px]">
+                <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAIL S:</div>
+                <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
+                  <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bankName}</span></div>
+                  <div className="flex gap-2"><span>IFSC CODE NO. :</span> <span className="text-gray-900">{bankIFSC}</span></div>
+                  <div className="flex gap-2"><span>S. B. No. :</span> <span className="text-gray-900">{bankAccount}</span></div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="text-right">
             <div className="text-[11px] font-bold text-red-600 mb-8 uppercase tracking-tight">
               For {COMPANY_INFO.name}
             </div>
-            <div className="text-[10px] font-medium w-40 ml-auto text-center text-gray-400">
+            <div className="text-[10px] font-medium w-44 ml-auto text-center border-t border-gray-400 pt-1 text-gray-600">
               Auth. Signatory
             </div>
           </div>

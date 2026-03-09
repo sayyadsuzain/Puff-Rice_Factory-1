@@ -207,18 +207,6 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                   {totalInWords}
                 </div>
               </div>
-
-              {/* Bank Details Below Words */}
-              {!isKacchi && bill.bank_name && bill.bank_ifsc && bill.bank_account && (
-                <div className="pt-4 text-[11px]">
-                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAIL S:</div>
-                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
-                    <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bill.bank_name}</span></div>
-                    <div className="flex gap-2"><span>IFSC CODE NO. :</span> <span className="text-gray-900">{bill.bank_ifsc}</span></div>
-                    <div className="flex gap-2"><span>S. B. No. :</span> <span className="text-gray-900">{bill.bank_account}</span></div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="text-right space-y-1">
@@ -266,14 +254,24 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
 
           {/* Auth Signatory Area */}
           <div className="mt-auto pt-6 flex justify-between items-end pb-2">
-            <div className="text-[11px] font-bold text-red-600 italic">
-              Thank you for your business!
+            <div className="text-left w-1/2">
+              {/* Bank Details Moved Here */}
+              {!isKacchi && bill.bank_name && bill.bank_ifsc && bill.bank_account && (
+                <div className="text-[11px]">
+                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAIL S:</div>
+                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
+                    <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bill.bank_name}</span></div>
+                    <div className="flex gap-2"><span>IFSC CODE NO. :</span> <span className="text-gray-900">{bill.bank_ifsc}</span></div>
+                    <div className="flex gap-2"><span>S. B. No. :</span> <span className="text-gray-900">{bill.bank_account}</span></div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-[11px] font-bold text-red-600 mb-8 uppercase tracking-tight">
                 For M S TRADING COMPANY
               </div>
-              <div className="text-[10px] font-medium w-40 ml-auto text-center text-gray-400">
+              <div className="text-[10px] font-medium w-44 ml-auto text-center border-t border-gray-400 pt-1 text-gray-600">
                 Auth. Signatory
               </div>
             </div>
