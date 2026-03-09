@@ -63,32 +63,37 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
         </div>
 
         {/* Header Section */}
-        <div className="w-full border-b-[4px] border-red-600 pb-2 mb-2">
-          <div className="grid grid-cols-3 items-start">
-            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
-              {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
-            </div>
+        <div className="w-full mb-2">
+          <div className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-tight mb-1">
+            {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
+          </div>
+          <div className="grid grid-cols-3 items-start mb-2">
+            <div className="text-[10px]"></div>
             <div className="text-center">
-              <div className="inline-block bg-red-600 text-white px-8 py-1 rounded-sm text-[11px] font-black tracking-widest mb-2 shadow-sm uppercase">
+              <div className="inline-block bg-red-600 text-white px-8 py-1 rounded-sm text-[11px] font-black tracking-widest shadow-sm uppercase">
                 {isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}
               </div>
             </div>
-            <div className="text-right text-[10px] space-y-0.5 font-black text-gray-800">
+            <div className="text-right text-[10px] space-y-0.5 font-bold text-gray-800">
               <div className="uppercase">Contact:</div>
               <div>9860022450</div>
               <div>9561420666</div>
             </div>
           </div>
 
-          <h1 className="text-center text-6xl font-black text-red-600 tracking-tight mb-1 mt-1" style={{ textShadow: '1px 1px 0px rgba(0,0,0,0.05)', transform: 'scaleY(1.1)' }}>
+          <h1 className="text-center text-5xl font-bold text-red-600 tracking-tight mb-1 mt-1" style={{ textShadow: '0.5px 0.5px 0px rgba(0,0,0,0.05)' }}>
             M S TRADING COMPANY
           </h1>
-          <div className="text-center text-[10px] tracking-widest text-gray-700 font-black uppercase">
+          <div className="text-center text-[10px] tracking-widest text-gray-700 font-bold uppercase">
             KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52
           </div>
           {!isKacchi && (
-            <p className="text-center text-[11px] font-black mt-1 text-gray-800 tracking-widest uppercase">GST IN : {COMPANY_INFO.gst}</p>
+            <p className="text-center text-[11px] font-bold mt-1 text-gray-800 tracking-widest uppercase">GST IN : {COMPANY_INFO.gst}</p>
           )}
+
+          {/* Double Red Header Lines */}
+          <div className="border-b-[4px] border-red-600 mt-2"></div>
+          <div className="border-b-[1px] border-red-600 mt-[2px]"></div>
         </div>
 
         {/* Bill Info Grid */}
@@ -145,7 +150,7 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
 
         {/* Items Table */}
         <div className="flex-1 min-h-[450px]">
-          <table className="w-full text-[13px] border-collapse border-b border-gray-400">
+          <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="bg-gray-50 border-t border-b border-gray-400">
                 <th className="border-l border-r border-gray-400 p-2 text-left font-black uppercase text-xs tracking-tight">Particulars</th>
@@ -155,7 +160,7 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 <th className="border-l border-r border-gray-400 p-2 text-right font-black uppercase text-xs tracking-tight w-32">Amount</th>
               </tr>
             </thead>
-            <tbody className="border-gray-400">
+            <tbody className="border-b border-gray-400">
               {items.map((item, idx) => {
                 const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
                 return (
@@ -197,20 +202,20 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
-                <div className="font-bold text-xs uppercase text-gray-500 mb-1">Rs. in Words:</div>
-                <div className="text-xs font-semibold leading-relaxed border-b border-gray-200 pb-2">
+                <div className="font-bold text-[10px] uppercase text-gray-500 mb-1">Rs. in Words:</div>
+                <div className="text-[11px] font-bold leading-tight border-b border-gray-200 pb-2">
                   {totalInWords}
                 </div>
               </div>
 
-              {/* Bank Details & Signature */}
+              {/* Bank Details Below Words */}
               {!isKacchi && bill.bank_name && bill.bank_ifsc && bill.bank_account && (
-                <div className="pt-2 text-[11px] border-t border-gray-100">
-                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAILS:</div>
-                  <div className="grid grid-cols-1 gap-0.5 font-medium">
-                    <div className="flex gap-1"><strong>Bank:</strong> {bill.bank_name}</div>
-                    <div className="flex gap-1"><strong>IFSC:</strong> {bill.bank_ifsc}</div>
-                    <div className="flex gap-1"><strong>A/C No:</strong> {bill.bank_account}</div>
+                <div className="pt-4 text-[11px]">
+                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAIL S:</div>
+                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
+                    <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bill.bank_name}</span></div>
+                    <div className="flex gap-2"><span>IFSC CODE NO. :</span> <span className="text-gray-900">{bill.bank_ifsc}</span></div>
+                    <div className="flex gap-2"><span>S. B. No. :</span> <span className="text-gray-900">{bill.bank_account}</span></div>
                   </div>
                 </div>
               )}
@@ -250,8 +255,8 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 </div>
               )}
 
-              <div className="border-t-2 border-black pt-2 mt-2">
-                <div className="flex justify-between items-center">
+              <div className="border-t-[3px] border-black pt-2 mt-2">
+                <div className="flex justify-between items-center px-1">
                   <span className="text-xl font-black italic">TOTAL</span>
                   <span className="text-2xl font-black">₹ {grandTotal.toFixed(2)}</span>
                 </div>
@@ -260,16 +265,16 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
           </div>
 
           {/* Auth Signatory Area */}
-          <div className="mt-8 flex justify-between items-end pb-2">
+          <div className="mt-auto pt-6 flex justify-between items-end pb-2">
             <div className="text-[11px] font-bold text-red-600 italic">
               Thank you for your business!
             </div>
             <div className="text-right">
-              <div className="text-[11px] font-black text-red-600 mb-10 uppercase tracking-tight">
+              <div className="text-[11px] font-bold text-red-600 mb-8 uppercase tracking-tight">
                 For M S TRADING COMPANY
               </div>
-              <div className="text-[10px] font-bold border-t border-gray-400 pt-1 w-36 ml-auto text-center text-gray-500">
-                Authorised Signatory
+              <div className="text-[10px] font-medium w-40 ml-auto text-center text-gray-400">
+                Auth. Signatory
               </div>
             </div>
           </div>
