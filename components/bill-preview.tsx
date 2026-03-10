@@ -274,38 +274,56 @@ export default function BillPreview({
 
       <style jsx>{`
         .bill-preview-wrapper {
-          min-height: 400px;
+          min-height: 500px;
+          display: flex;
+          align-items: flex-start;
+          padding-top: 2rem;
+          padding-bottom: 2rem;
         }
         .bill-preview-container {
           width: 210mm;
           height: 297mm;
+          transform-origin: top center;
+        }
+        @media (min-width: 1281px) {
+          .bill-preview-container {
+            transform: scale(0.9);
+          }
+        }
+        @media (max-width: 1280px) {
+          .bill-preview-container {
+            transform: scale(0.75);
+            margin-bottom: -100px;
+          }
         }
         @media (max-width: 1024px) {
           .bill-preview-container {
-            transform: scale(0.85);
-            margin-top: -100px;
-            margin-bottom: -100px;
+            transform: scale(0.7);
+            margin-bottom: -150px;
           }
         }
         @media (max-width: 768px) {
           .bill-preview-container {
-            transform: scale(0.65);
-            margin-top: -200px;
+            transform: scale(0.6);
             margin-bottom: -200px;
+          }
+        }
+        @media (max-width: 640px) {
+          .bill-preview-container {
+            transform: scale(0.45);
+            margin-bottom: -350px;
           }
         }
         @media (max-width: 480px) {
           .bill-preview-container {
-            transform: scale(0.4);
-            margin-top: -350px;
-            margin-bottom: -350px;
+            transform: scale(0.38);
+            margin-bottom: -450px;
           }
         }
         @media (max-width: 380px) {
           .bill-preview-container {
-            transform: scale(0.35);
-            margin-top: -400px;
-            margin-bottom: -400px;
+            transform: scale(0.32);
+            margin-bottom: -500px;
           }
         }
       `}</style>

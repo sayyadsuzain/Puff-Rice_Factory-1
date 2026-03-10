@@ -787,7 +787,7 @@ export default function CreateBillPage() {
           </div>
 
           {/* Preview Section */}
-          <div className="mt-6 md:mt-0">
+          <div className="mt-6 xl:mt-0 xl:sticky xl:top-8 self-start max-h-[calc(100vh-2rem)] overflow-y-auto xl:overflow-visible">
             <BillPreview
               billType={billType}
               billNumber={nextBillNumber || ''}
