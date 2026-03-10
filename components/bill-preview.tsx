@@ -274,25 +274,37 @@ export default function BillPreview({
 
       <style jsx>{`
         .bill-preview-wrapper {
-          min-height: 500px;
+          width: 100%;
+          height: 100%;
           display: flex;
+          justify-content: center;
           align-items: flex-start;
-          padding-top: 2rem;
-          padding-bottom: 2rem;
+          overflow: hidden;
+          background: #f3f4f6;
+          border-radius: 0.75rem;
+          border: 1px dashed #d1d5db;
         }
+
         .bill-preview-container {
           width: 210mm;
           height: 297mm;
           transform-origin: top center;
+          /* Base scale for high res, will be overridden by vh-based scaling */
+          transform: scale(0.9); 
         }
-        @media (min-width: 1281px) {
+
+        /* Desktop specific auto-scaling to fit height precisely */
+        @media (min-width: 1280px) {
           .bill-preview-container {
-            transform: scale(0.9);
+            /* 1122px is approx 297mm. Offset for header/padding is ~180px */
+            transform: scale(calc((100vh - 180px) / 1122));
           }
         }
-        @media (max-width: 1280px) {
+
+        /* Responsive scaling for smaller screens */
+        @media (max-width: 1279px) {
           .bill-preview-container {
-            transform: scale(0.75);
+            transform: scale(0.85);
             margin-bottom: -100px;
           }
         }

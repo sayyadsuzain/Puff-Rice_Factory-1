@@ -439,9 +439,9 @@ export default function CreateBillPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 xl:h-[calc(100vh-140px)] xl:overflow-hidden px-1">
           {/* Form Section */}
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-4 md:space-y-6 xl:overflow-y-auto xl:pr-4 custom-scrollbar">
             <Card>
               <CardHeader className="pb-4 md:pb-6">
                 <CardTitle className="text-lg md:text-xl">Create New Bill</CardTitle>
@@ -787,7 +787,12 @@ export default function CreateBillPage() {
           </div>
 
           {/* Preview Section */}
-          <div className="mt-6 xl:mt-0 xl:sticky xl:top-8 self-start max-h-[calc(100vh-2rem)] overflow-y-auto xl:overflow-visible">
+          <div className="mt-6 xl:mt-0 xl:h-full xl:flex xl:flex-col xl:overflow-hidden bg-gray-50/30 rounded-xl border">
+            <div className="p-2 border-b bg-gray-100/50 text-xs font-bold text-gray-500 uppercase flex justify-between items-center">
+              <span>Live Preview</span>
+              <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Auto-scaled to fit</span>
+            </div>
+            <div className="flex-1 xl:overflow-hidden">
             <BillPreview
               billType={billType}
               billNumber={nextBillNumber || ''}
@@ -809,10 +814,25 @@ export default function CreateBillPage() {
               grandTotal={grandTotal}
               totalAmountWords={totalAmountWords}
             />
+            </div>
           </div>
         </div>
       </div>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}</style>
     </ProtectedRoute>
   )
 }
-
