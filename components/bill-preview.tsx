@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { BillItem, COMPANY_INFO, formatDate, numberToWords } from '@/lib/supabase'
 
@@ -45,10 +46,45 @@ export default function BillPreview({
   totalAmountWords
 }: BillPreviewProps) {
   const isKacchi = billType === 'kacchi'
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    const handleResize = (entries: ResizeObserverEntry[]) => {
+      const entry = entries[0]
+      if (entry) {
+        const { width, height } = entry.contentRect
+        // Target inner dimensions: Width: 210mm (~794px), Height: 297mm (~1122px)
+        const targetWidth = 794
+        const targetHeight = 1122
+        
+        // Use a safe padding of 32px (16px each side)
+        const availableWidth = width - 32
+        const availableHeight = height - 32
+        
+        const scaleW = availableWidth / targetWidth
+        const scaleH = availableHeight / targetHeight
+        
+        // Take the smaller scale to ensure it fits perfectly in both dimensions
+        const finalScale = Math.min(scaleW, scaleH)
+        setScale(Math.max(0.2, finalScale)) // Don't go below 0.2
+      }
+    }
+
+    const observer = new ResizeObserver(handleResize)
+    if (wrapperRef.current) {
+      observer.observe(wrapperRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <div className="bill-preview-wrapper w-full overflow-hidden flex justify-center py-4 bg-gray-100/50 rounded-xl border border-dashed border-gray-300">
-      <div className="bill-preview-container origin-top transition-transform duration-300 ease-in-out">
+    <div className="bill-preview-wrapper" ref={wrapperRef}>
+      <div 
+        className="bill-preview-container" 
+        style={{ transform: `scale(${scale})` }}
+      >
         <Card className="p-8 bg-white text-black relative shadow-2xl border-none" style={{ fontFamily: 'Arial, sans-serif', width: '210mm', minHeight: '297mm', margin: '0' }}>
           <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
 
@@ -283,7 +319,7 @@ export default function BillPreview({
           background: #f3f4f6;
           border-radius: 0.75rem;
           border: 1px dashed #d1d5db;
-          padding: 1.5rem;
+          padding: 1rem;
         }
 
         .bill-preview-container {
@@ -293,58 +329,6 @@ export default function BillPreview({
           transition: transform 0.2s ease-out;
           background: white;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-
-        /* Desktop: Precision scaling to fit BOTH width and height */
-        @media (min-width: 1280px) {
-          .bill-preview-container {
-            /* 
-               Width limit: Max pane width in 1280px layout is ~600px.
-               Height limit: Viewport height minus header/footer (~220px).
-            */
-            transform: scale(min(
-              calc(580 / 794), 
-              calc((100vh - 220px) / 1122)
-            ));
-          }
-        }
-
-        /* Tablet/Large Mobile scaling */
-        @media (max-width: 1279px) {
-          .bill-preview-container {
-            transform: scale(0.65);
-            margin-bottom: -150px;
-          }
-        }
-        @media (max-width: 1024px) {
-          .bill-preview-container {
-            transform: scale(0.55);
-            margin-bottom: -200px;
-          }
-        }
-        @media (max-width: 768px) {
-          .bill-preview-container {
-            transform: scale(0.5);
-            margin-bottom: -250px;
-          }
-        }
-        @media (max-width: 640px) {
-          .bill-preview-container {
-            transform: scale(0.42);
-            margin-bottom: -350px;
-          }
-        }
-        @media (max-width: 480px) {
-          .bill-preview-container {
-            transform: scale(0.35);
-            margin-bottom: -450px;
-          }
-        }
-        @media (max-width: 380px) {
-          .bill-preview-container {
-            transform: scale(0.28);
-            margin-bottom: -500px;
-          }
         }
       `}</style>
     </div>
