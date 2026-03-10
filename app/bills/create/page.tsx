@@ -121,7 +121,7 @@ export default function CreateBillPage() {
     }
   }, [items, isGstEnabled, cgstPercent, igstPercent, balance, billType])
 
-  const fetchNextBillNumber = async () => {
+  const fetchNextBillNumber = async (typeOverride?: 'kacchi' | 'pakki') => {
     try {
       const fy = getFinancialYear(new Date())
       const prefix = billType === 'pakki' ? 'P' : 'K'
@@ -168,7 +168,7 @@ export default function CreateBillPage() {
 
   const handleBillTypeChange = (value: 'kacchi' | 'pakki') => {
     setBillType(value)
-    fetchNextBillNumber()
+    fetchNextBillNumber(value)
 
     // Reset GST when switching to Kacchi
     if (value === 'kacchi') {

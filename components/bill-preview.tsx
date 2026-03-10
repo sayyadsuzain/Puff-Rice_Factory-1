@@ -63,7 +63,7 @@ export default function BillPreview({
       const pad = 16
       const scaleW = (width - pad * 2) / BILL_W
       const scaleH = (height - pad * 2) / BILL_H
-      const s = Math.max(0.15, Math.min(scaleW, scaleH))
+      const s = Math.max(0.25, scaleW)
       setScale(s)
     }
 
@@ -88,7 +88,7 @@ export default function BillPreview({
       style={{
         width: '100%',
         height: '100%',
-        overflow: 'hidden',
+        overflowX: 'hidden', overflowY: 'auto',
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
