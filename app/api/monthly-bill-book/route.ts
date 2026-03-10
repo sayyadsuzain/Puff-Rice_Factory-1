@@ -23,16 +23,13 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Verify authentication status for core diagnostics
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    console.log('📊 MONTHLY-PDF: Auth check:', user ? `Authenticated as ${user.email}` : 'Not authenticated', authError ? `Auth error: ${authError.message}` : '')
+
     let query = supabase
       .from('bills')
-      .select(`
-        *,
-        parties (
-          id,
-          name,
-          gst_number
-        )
-      `)
+      .select('*') // Core approach: No join
       .order('bill_date', { ascending: true })
       .order('bill_number', { ascending: true })
 
@@ -55,7 +52,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!bills || bills.length === 0) {
-      return NextResponse.json({ error: 'No bills found for the selected period' }, { status: 404 })
+      return NextResponse.json({ 
+        error: 'No bills found for the selected period',
+        auth: user ? 'authenticated' : 'anonymous',
+        details: 'QueryResult: Empty set'
+      }, { status: 404 })
     }
 
     // Debug: Check party data

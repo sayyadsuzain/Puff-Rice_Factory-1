@@ -61,23 +61,41 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Fetch bill with party data
+    // Verify authentication status for core diagnostics
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    console.log('🎨 BILL-PDF: Auth check:', user ? `Authenticated as ${user.email}` : 'Not authenticated', authError ? `Auth error: ${authError.message}` : '')
+
+    // Fetch bill FIRST without join (Core approach)
     const { data: bill, error: billError } = await supabase
       .from('bills')
-      .select(`
-        *,
-        parties (
-          id,
-          name,
-          gst_number
-        )
-      `)
+      .select('*')
       .eq('id', parseInt(billId))
       .single()
 
     if (billError || !bill) {
       console.error('❌ BILL-PDF: Bill fetch error:', billError)
-      return NextResponse.json({ error: 'Bill not found' }, { status: 404 })
+      return NextResponse.json({ 
+        error: 'Bill not found', 
+        details: billError?.message || 'No bill data returned',
+        id: billId,
+        auth: user ? 'authenticated' : 'anonymous',
+        hint: 'Check if RLS policies allow this user to read bills'
+      }, { status: 404 })
+    }
+
+    // Fetch party information separately (matches frontend logic)
+    if (bill.party_id) {
+      const { data: party, error: partyError } = await supabase
+        .from('parties')
+        .select('name, gst_number')
+        .eq('id', bill.party_id)
+        .single()
+
+      if (!partyError && party) {
+        bill.parties = party
+      } else {
+        console.warn('⚠️ BILL-PDF: Party fetch failed:', partyError)
+      }
     }
 
     console.log('✅ BILL-PDF: Bill fetched successfully:', bill.id)
