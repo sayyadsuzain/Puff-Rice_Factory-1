@@ -94,25 +94,39 @@ export const formatDate = (dateStr: string): string => {
 }
 
 export const formatDateTime = (dateStr: string): string => {
-  // Convert UTC to IST (UTC+5:30) explicitly
-  const utcDate = new Date(dateStr)
-  // Add 5 hours 30 minutes to get IST
-  const istOffset = 5.5 * 60 * 60 * 1000 // 5.5 hours in ms
-  const istDate = new Date(utcDate.getTime() + istOffset)
-
-  // Format the IST date manually
-  const dd = String(istDate.getUTCDate()).padStart(2, '0')
-  const mm = String(istDate.getUTCMonth() + 1).padStart(2, '0')
-  const yyyy = istDate.getUTCFullYear()
+  if (!dateStr) return '---'
   
-  let hours = istDate.getUTCHours()
-  const minutes = String(istDate.getUTCMinutes()).padStart(2, '0')
-  const ampm = hours >= 12 ? 'pm' : 'am'
-  hours = hours % 12
-  if (hours === 0) hours = 12
-  const hh = String(hours).padStart(2, '0')
-
-  return `${dd}/${mm}/${yyyy}, ${hh}:${minutes} ${ampm}`
+  try {
+    const date = new Date(dateStr)
+    // Use Intl.DateTimeFormat with explicit IST timezone
+    const formatter = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
+    
+    // Format and add IST suffix for 100% clarity
+    return formatter.format(date).replace(',', '') + ' IST'
+  } catch (e) {
+    // Ultimate fallback: Manual UTC+5:30 offset
+    console.error('Intl formatting failed, using manual fallback:', e)
+    const utcDate = new Date(dateStr)
+    const istDate = new Date(utcDate.getTime() + 5.5 * 60 * 60 * 1000)
+    
+    const d = String(istDate.getUTCDate()).padStart(2, '0')
+    const m = String(istDate.getUTCMonth() + 1).padStart(2, '0')
+    const y = istDate.getUTCFullYear()
+    let h = istDate.getUTCHours()
+    const min = String(istDate.getUTCMinutes()).padStart(2, '0')
+    const ampm = h >= 12 ? 'pm' : 'am'
+    h = h % 12 || 12
+    
+    return `${d}/${m}/${y}, ${String(h).padStart(2, '0')}:${min} ${ampm} IST`
+  }
 }
 
 // Amount to words conversion
