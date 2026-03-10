@@ -278,64 +278,60 @@ export default function BillPreview({
           height: 100%;
           display: flex;
           justify-content: center;
-          align-items: flex-start;
+          align-items: center;
           overflow: hidden;
           background: #f3f4f6;
           border-radius: 0.75rem;
           border: 1px dashed #d1d5db;
+          padding: 1rem;
         }
 
         .bill-preview-container {
           width: 210mm;
           height: 297mm;
-          transform-origin: top center;
-          /* Base scale for high res, will be overridden by vh-based scaling */
-          transform: scale(0.9); 
+          transform-origin: center center;
+          transition: transform 0.2s ease-out;
+          background: white;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* Desktop specific auto-scaling to fit height precisely */
         @media (min-width: 1280px) {
           .bill-preview-container {
-            /* 1122px is approx 297mm. Offset for header/padding is ~180px */
-            transform: scale(calc((100vh - 180px) / 1122));
+            transform: scale(min(
+              calc((50vw - 120px) / 794),
+              calc((100vh - 240px) / 1122)
+            ));
           }
         }
 
-        /* Responsive scaling for smaller screens */
         @media (max-width: 1279px) {
           .bill-preview-container {
-            transform: scale(0.85);
-            margin-bottom: -100px;
+            transform: scale(0.8);
           }
         }
         @media (max-width: 1024px) {
           .bill-preview-container {
-            transform: scale(0.7);
-            margin-bottom: -150px;
+            transform: scale(0.65);
           }
         }
         @media (max-width: 768px) {
           .bill-preview-container {
-            transform: scale(0.6);
-            margin-bottom: -200px;
+            transform: scale(0.55);
           }
         }
         @media (max-width: 640px) {
           .bill-preview-container {
-            transform: scale(0.45);
-            margin-bottom: -350px;
+            transform: scale(0.42);
           }
         }
         @media (max-width: 480px) {
           .bill-preview-container {
-            transform: scale(0.38);
-            margin-bottom: -450px;
+            transform: scale(0.35);
           }
         }
         @media (max-width: 380px) {
           .bill-preview-container {
-            transform: scale(0.32);
-            margin-bottom: -500px;
+            transform: scale(0.3);
           }
         }
       `}</style>

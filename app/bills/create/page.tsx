@@ -63,6 +63,12 @@ export default function CreateBillPage() {
     console.log('CreateBillPage mounted, fetching initial data...')
     fetchNextBillNumber()
     fetchSavedBankDetails()
+
+    // Lock body scroll on mount
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
   }, [])
 
   const getFinancialYear = (date: Date) => {
@@ -439,10 +445,10 @@ export default function CreateBillPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 xl:h-[calc(100vh-140px)] xl:overflow-hidden px-1">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 xl:h-[calc(100vh-180px)] xl:overflow-hidden px-1">
           {/* Form Section */}
-          <div className="space-y-4 md:space-y-6 xl:overflow-y-auto xl:pr-4 custom-scrollbar">
-            <Card>
+          <div className="space-y-4 md:space-y-6 xl:h-full xl:overflow-y-auto xl:pr-4 custom-scrollbar">
+            <Card className="shadow-sm">
               <CardHeader className="pb-4 md:pb-6">
                 <CardTitle className="text-lg md:text-xl">Create New Bill</CardTitle>
                 <CardDescription className="text-sm md:text-base">Fill in the bill details below</CardDescription>
