@@ -123,8 +123,9 @@ export default function CreateBillPage() {
 
   const fetchNextBillNumber = async (typeOverride?: 'kacchi' | 'pakki') => {
     try {
+      const effectiveType = typeOverride ?? billType
       const fy = getFinancialYear(new Date())
-      const prefix = billType === 'pakki' ? 'P' : 'K'
+      const prefix = effectiveType === 'pakki' ? 'P' : 'K'
       const pattern = `${prefix}/${fy}/%`
       const { data } = await supabase
         .from('bills')
@@ -145,7 +146,7 @@ export default function CreateBillPage() {
     } catch (error) {
       // Use fallback if query fails
       const fy = getFinancialYear(new Date())
-      const prefix = billType === 'pakki' ? 'P' : 'K'
+      const prefix = effectiveType === 'pakki' ? 'P' : 'K'
       const displayNumber = `${prefix}/${fy}/001`
       setNextBillNumber(displayNumber)
     }
