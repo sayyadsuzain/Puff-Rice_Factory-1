@@ -51,20 +51,37 @@ export function generateBillHTML(
     `
   }).join('')
 
+  // Fixed 18 rows total for visual consistency and parity with CA-look
+  const emptyRowsCount = Math.max(0, 18 - items.length)
+  const emptyRows = Array.from({ length: emptyRowsCount }).map(() => `
+    <tr class="item-row">
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+    </tr>
+  `).join('')
+
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
-      <style>${BILL_CSS}</style>
+      <style>${BILL_CSS}
+        .item-row td:empty, .item-row td:contains("-") { color: transparent; user-select: none; }
+        .item-row td { color: inherit; }
+        tr.item-row td { color: transparent; } /* Hidden text for empty rows */
+        tr.item-row td > div, tr.item-row td:not(:empty) { color: black; }
+      </style>
     </head>
     <body>
       <div class="a4-page">
         <div class="watermark-ms">MS</div>
         
         <div class="content-wrapper">
-          <header class="header-top">
+          <div class="header-top">
             <div class="jurisdiction">${!isKacchi ? 'Subject to Sangli Jurisdiction' : ''}</div>
             <div class="header-grid">
               <div></div>
@@ -84,9 +101,9 @@ export function generateBillHTML(
             
             <div class="red-divider-main"></div>
             <div class="red-divider-sub"></div>
-          </header>
+          </div>
 
-          <section class="bill-info-grid">
+          <div class="bill-info-grid">
             <div>
               <div class="info-label">From :</div>
               <div style="font-weight: bold;">M S TRADING COMPANY</div>
@@ -99,9 +116,9 @@ export function generateBillHTML(
               <div class="info-label">Date :</div>
               <div style="font-weight: bold; font-size: 16px;">${billDateStr}</div>
             </div>
-          </section>
+          </div>
 
-          <section class="party-details">
+          <div class="party-details">
             <div class="party-name-row">
               <span style="font-weight: bold;">M/s. </span>
               <span class="party-name-underline">${partyName || '_'.repeat(40)}</span>
@@ -122,9 +139,9 @@ export function generateBillHTML(
                 ` : ''}
               </div>
             ` : ''}
-          </section>
+          </div>
 
-          <main class="items-table-container">
+          <div class="items-table-container">
             <table class="items-table">
               <thead>
                 <tr>
@@ -137,18 +154,12 @@ export function generateBillHTML(
               </thead>
               <tbody>
                 ${itemRows}
-                <tr class="spacer-row">
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
+                ${emptyRows}
               </tbody>
             </table>
-          </main>
+          </div>
 
-          <footer class="form-footer">
+          <div class="form-footer">
             <div class="footer-grid">
               <div class="words-section">
                 <div style="font-weight: bold; font-size: 10px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Rs. in Words:</div>
@@ -222,7 +233,7 @@ export function generateBillHTML(
                 Page ${pageNumber} of ${totalPages}
               </div>
             ` : ''}
-          </footer>
+          </div>
         </div>
       </div>
     </body>

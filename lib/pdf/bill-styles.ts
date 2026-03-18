@@ -46,14 +46,14 @@ export const BILL_CSS = `
   .content-wrapper {
     position: relative;
     z-index: 10;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto auto auto auto 1fr auto;
     height: 100%;
     width: 100%;
+    gap: 0;
   }
 
   .header-top {
-    flex: 0 0 auto;
     width: 100%;
     margin-bottom: 2px;
   }
@@ -71,7 +71,6 @@ export const BILL_CSS = `
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: start;
-    width: 100%;
   }
 
   .memo-badge {
@@ -127,11 +126,9 @@ export const BILL_CSS = `
   .red-divider-sub {
     border-bottom: 0.5px solid #dc2626;
     margin-top: 1px;
-    margin-bottom: 4px;
   }
 
   .bill-info-grid {
-    flex: 0 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 8px;
@@ -154,7 +151,6 @@ export const BILL_CSS = `
   }
 
   .party-details {
-    flex: 0 0 auto;
     border: 0.5px solid #d1d5db;
     border-radius: 4px;
     padding: 6px 10px;
@@ -181,15 +177,12 @@ export const BILL_CSS = `
   }
 
   .items-table-container {
-    flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
     border-bottom: 0.5px solid #9ca3af;
   }
 
   .items-table {
     width: 100%;
-    height: 100%;
     font-size: 11px;
     border-collapse: collapse;
     table-layout: fixed;
@@ -215,26 +208,17 @@ export const BILL_CSS = `
   .items-table td {
     border-left: 0.5px solid #9ca3af;
     border-right: 0.5px solid #9ca3af;
-    padding: 4px 6px;
+    padding: 3px 6px;
     vertical-align: top;
   }
 
   .item-row {
     height: 24px;
-  }
-
-  .spacer-row {
-    height: 100%;
-  }
-
-  .spacer-row td {
-    border-bottom: none;
+    line-height: 24px;
   }
 
   .form-footer {
-    flex: 0 0 auto;
     padding-top: 8px;
-    width: 100%;
     background: white;
   }
 
@@ -246,7 +230,6 @@ export const BILL_CSS = `
 
   .words-section {
     font-size: 10px;
-    text-align: left;
   }
 
   .totals-section {
