@@ -118,14 +118,32 @@ export default function BillDetailPage() {
     }
 
     setIsSharing(true)
-    toast.loading('Preparing PDF for WhatsApp...', { id: 'whatsapp-share' })
+    toast.loading('Preparing PDF...', { id: 'whatsapp-share' })
 
     try {
-      // Get auth token
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
-      // Fetch real PDF binary from the download endpoint
+      const safeBillNumber = String(bill.bill_number).replace(/\//g, '-')
+      const filename = `${safeBillNumber} - ${partyName}.pdf`
+
+      // Detect iOS (iPhone/iPad) — Safari's PDF viewer has a native Share button
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+
+      if (isIOS) {
+        // On iOS: open the PDF directly via the download URL.
+        // Safari will display it with a built-in Share button (top-right)
+        // where the user can tap → Share → WhatsApp.
+        const pdfUrl = `/api/bill-pdf-download?id=${billId}${token ? `&token=${token}` : ''}`
+        toast.dismiss('whatsapp-share')
+        toast.success('PDF opened! Tap the Share button (↑) to send via WhatsApp', {
+          duration: 7000,
+        })
+        window.open(pdfUrl, '_blank')
+        return
+      }
+
+      // Non-iOS: fetch the blob and use Web Share API or download fallback
       const downloadUrl = `/api/bill-pdf-download?id=${billId}${token ? `&token=${token}` : ''}`
       const response = await fetch(downloadUrl)
 
@@ -134,35 +152,30 @@ export default function BillDetailPage() {
       }
 
       const blob = await response.blob()
-
-      // Build the safe filename (replace / with - for OS compatibility)
-      const safeBillNumber = String(bill.bill_number).replace(/\//g, '-')
-      const filename = `${safeBillNumber} - ${partyName}.pdf`
       const file = new File([blob], filename, { type: 'application/pdf' })
 
-      // Try Web Share API (supported on mobile / iPad)
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Android Chrome and other browsers with file share support
         await navigator.share({
           files: [file],
           title: `Bill ${bill.bill_number}`,
-          text: `Bill from M S Trading Company`,
+          text: 'Bill from M S Trading Company',
         })
         toast.success('Bill shared!', { id: 'whatsapp-share' })
       } else {
-        // Desktop fallback: auto-download the PDF
+        // Desktop fallback: download the PDF
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
         a.download = filename
         a.click()
         URL.revokeObjectURL(url)
-        toast.success('PDF downloaded! Open WhatsApp and attach it manually.', {
+        toast.success('PDF downloaded! Attach it in WhatsApp manually.', {
           id: 'whatsapp-share',
           duration: 5000,
         })
       }
     } catch (error: any) {
-      // User cancelled the share sheet — ignore silently
       if (error?.name === 'AbortError') {
         toast.dismiss('whatsapp-share')
         return
