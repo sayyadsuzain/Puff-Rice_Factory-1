@@ -803,13 +803,13 @@ export default function CreateBillPage() {
             </Card>
           </div>
 
-          {/* Preview Section */}
-          <div className="mt-6 xl:mt-0 xl:h-full xl:flex xl:flex-col xl:overflow-hidden bg-gray-50/30 rounded-xl border">
+          {/* Preview Section — hidden on mobile/tablet to prevent scroll-stealing */}
+          <div className="hidden xl:flex xl:flex-col xl:h-full xl:overflow-hidden bg-gray-50/30 rounded-xl border">
             <div className="p-2 border-b bg-gray-100/50 text-xs font-bold text-gray-500 uppercase flex justify-between items-center">
               <span>Live Preview</span>
               <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Auto-scaled to fit</span>
             </div>
-            <div className="h-[500px] xl:flex-1 xl:overflow-hidden">
+            <div className="flex-1 overflow-hidden">
             <BillPreview
               billType={billType}
               billNumber={nextBillNumber || ''}
