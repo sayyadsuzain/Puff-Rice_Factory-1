@@ -122,8 +122,8 @@ export default function CreateBillPage() {
   }, [items, isGstEnabled, cgstPercent, igstPercent, balance, billType])
 
   const fetchNextBillNumber = async (typeOverride?: 'kacchi' | 'pakki') => {
+    const effectiveType = typeOverride ?? billType
     try {
-      const effectiveType = typeOverride ?? billType
       const fy = getFinancialYear(new Date())
       const prefix = effectiveType === 'pakki' ? 'P' : 'K'
       const pattern = `${prefix}/${fy}/%`
@@ -809,7 +809,7 @@ export default function CreateBillPage() {
               <span>Live Preview</span>
               <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Auto-scaled to fit</span>
             </div>
-            <div className="flex-1 xl:overflow-hidden">
+            <div className="h-[500px] xl:flex-1 xl:overflow-hidden">
             <BillPreview
               billType={billType}
               billNumber={nextBillNumber || ''}
