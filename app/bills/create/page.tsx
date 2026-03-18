@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO, SavedBankDetail, numberToWords } from '@/lib/supabase'
 import BillPreview from '@/components/bill-preview'
@@ -443,382 +443,361 @@ export default function CreateBillPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 xl:h-[calc(100vh-180px)] xl:overflow-hidden px-1">
           {/* Form Section */}
           <div className="space-y-4 md:space-y-6 xl:h-full xl:overflow-y-auto xl:pr-4 custom-scrollbar">
-            <Card className="shadow-sm">
-              <CardHeader className="pb-4 md:pb-6">
-                <CardTitle className="text-lg md:text-xl">Create New Bill</CardTitle>
-                <CardDescription className="text-sm md:text-base">Fill in the bill details below</CardDescription>
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-4 md:pb-6 bg-gray-50/50 rounded-t-xl">
+                <CardTitle className="text-xl md:text-2xl font-black text-gray-900">Create New Bill</CardTitle>
+                <CardDescription className="text-sm md:text-base font-medium">Step-by-step bill generation engine</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6 md:space-y-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
+                <form onSubmit={handleSaveBill} className="space-y-8">
+                  {/* STEP 1: BILL TYPE & DATE */}
+                  <div className="space-y-5 p-4 sm:p-5 bg-blue-50/50 rounded-xl border border-blue-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-blue-900 flex items-center gap-2">
+                       <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">1</span>
+                       Basic Information
+                    </h3>
 
-                {/* STEP 1: BILL TYPE & DATE */}
-                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                  <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
-                    <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
-                    Basic Information
-                  </h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm md:text-base font-medium">Bill Type</Label>
-                      <Select value={billType} onValueChange={handleBillTypeChange}>
-                        <SelectTrigger className="w-full" suppressHydrationWarning>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="kacchi">Kacchi (Cash)</SelectItem>
-                          <SelectItem value="pakki">Pakki (Credit/GST)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm md:text-base font-medium">Bill Date</Label>
-                      <Input
-                        type="date"
-                        value={billDate}
-                        onChange={(e) => setBillDate(e.target.value)}
-                        className="text-sm md:text-base"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-muted-foreground">
-                    Bill No. will be auto-generated: <span className="font-semibold text-blue-700">{nextBillNumber}</span>
-                  </div>
-                </div>
-
-                {/* STEP 2: PARTY SELECTION */}
-                <div className="space-y-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
-                  <h3 className="text-lg font-semibold text-green-900 flex items-center gap-2">
-                    <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
-                    Party Information
-                  </h3>
-
-                  <PartySearch
-                    value={partyName}
-                    onChange={handlePartySelect}
-                    required
-                  />
-
-                  {partyGst && billType === 'pakki' && (
-                    <div className="text-sm text-green-700 bg-green-100 p-2 rounded">
-                      Party GST: <span className="font-semibold">{partyGst}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* STEP 3: VEHICLE & LOGISTICS */}
-                <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
-                  <h3 className="text-lg font-semibold text-yellow-900 flex items-center gap-2">
-                    <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</span>
-                    Vehicle & Logistics
-                  </h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm md:text-base font-medium">Vehicle Number</Label>
-                      <Input
-                        placeholder="e.g., MH-12-AB-1234"
-                        value={vehicleNumber}
-                        onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
-                        className="text-sm md:text-base"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm md:text-base font-medium">Balance Amount (₹)</Label>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={balance}
-                        onChange={(e) => setBalance(e.target.value)}
-                        step="0.01"
-                        className="text-sm md:text-base"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* STEP 4: ITEMS (MAIN CONTENT) */}
-                <div className="space-y-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
-                  <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
-                    <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</span>
-                    Items & Products
-                  </h3>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <Label className="text-sm md:text-base font-semibold">Bill Items</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddItem}
-                      className="text-xs md:text-sm"
-                    >
-                      + Add Item
-                    </Button>
-                  </div>
-
-                  <div className="space-y-3 md:space-y-4 max-h-80 md:max-h-96 overflow-y-auto border rounded-md p-3 md:p-4 bg-white">
-                    {items.length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground text-sm mb-3">No items added yet</p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleAddItem}
-                        >
-                          Add First Item
-                        </Button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-bold text-gray-700">Bill Type</Label>
+                        <Select value={billType} onValueChange={handleBillTypeChange}>
+                          <SelectTrigger className="w-full h-11 bg-white" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="kacchi">Kacchi (Cash/Rough)</SelectItem>
+                            <SelectItem value="pakki">Pakki (GST Invoice)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    ) : (
-                      items.map((item, index) => (
-                        <BillItemForm
-                          key={index}
-                          index={index}
-                          item={item}
-                          onUpdate={(updatedItem) => handleUpdateItem(index, updatedItem)}
-                          onRemove={() => handleRemoveItem(index)}
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-bold text-gray-700">Bill Date</Label>
+                        <Input
+                          type="date"
+                          value={billDate}
+                          onChange={(e) => setBillDate(e.target.value)}
+                          className="h-11 bg-white font-medium"
+                          required
                         />
-                      ))
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-white/80 rounded border border-blue-100 flex items-center justify-between">
+                       <span className="text-xs font-bold text-blue-800 uppercase tracking-tighter">Next Bill Number:</span>
+                       <span className="font-mono text-sm font-black text-blue-900">{nextBillNumber || 'Fetching...'}</span>
+                    </div>
+                  </div>
+
+                  {/* STEP 2: PARTY SELECTION */}
+                  <div className="space-y-5 p-4 sm:p-5 bg-emerald-50/50 rounded-xl border border-emerald-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2">
+                      <span className="bg-emerald-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">2</span>
+                      Party Information
+                    </h3>
+                    
+                    <PartySearch
+                      value={partyName}
+                      onChange={(id, name) => {
+                        setSelectedPartyId(id)
+                        setPartyName(name)
+                        // If it's a known party, we'd fetch GST here, but PartySearch handles its own internal state
+                      }}
+                      placeholder="Start typing party name..."
+                      required
+                    />
+
+                    {partyGst && billType === 'pakki' && (
+                      <div className="text-xs font-bold text-emerald-700 bg-white p-2 rounded border border-emerald-100 flex items-center gap-2">
+                        <span className="opacity-60 uppercase">GSTIN:</span> 
+                        <span className="font-mono">{partyGst}</span>
+                      </div>
                     )}
                   </div>
 
-                  {/* Items Summary */}
-                  <div className="bg-white p-3 rounded border">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Items Sub Total:</span>
-                      <span className="text-lg font-bold text-purple-600">₹{itemsTotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* STEP 5: GST SETTINGS (PAKKI ONLY) */}
-                {billType === 'pakki' && (
-                  <div className="space-y-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
-                    <h3 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
-                      <span className="bg-indigo-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">5</span>
-                      GST Settings
+                  {/* STEP 3: VEHICLE & LOGISTICS */}
+                  <div className="space-y-5 p-4 sm:p-5 bg-amber-50/50 rounded-xl border border-amber-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-amber-900 flex items-center gap-2">
+                      <span className="bg-amber-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">3</span>
+                      Vehicle & Logistics
                     </h3>
 
-                    <div className="space-y-3">
-                      <div className="bg-white p-3 rounded border">
-                        <Label className="text-sm font-medium">Company GST Number</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-bold text-gray-700">Vehicle Number</Label>
                         <Input
-                          value={COMPANY_INFO.gst}
-                          disabled
-                          className="bg-muted text-sm mt-1"
+                          placeholder="MH-12-XX-0000"
+                          value={vehicleNumber}
+                          onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+                          className="h-11 bg-white font-mono uppercase font-bold"
                         />
                       </div>
 
-                      <GSTToggle
-                        isEnabled={isGstEnabled}
-                        onToggle={setIsGstEnabled}
-                        cgstPercent={cgstPercent}
-                        igstPercent={igstPercent}
-                        onPercentChange={(type, value) => {
-                          if (type === 'cgst') setCgstPercent(value)
-                          else if (type === 'igst') setIgstPercent(value)
-                        }}
-                        itemsTotal={itemsTotal}
-                        partyGst={partyGst}
-                        onPartyGstChange={setPartyGst}
-                      />
+                      <div className="space-y-2">
+                        <Label className="text-sm font-bold text-gray-700">Old Balance (₹)</Label>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          value={balance}
+                          onChange={(e) => setBalance(e.target.value)}
+                          step="0.01"
+                          className="h-11 bg-white font-black text-amber-700"
+                        />
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {/* STEP 6: PAYMENT & BANK DETAILS (PAKKI ONLY) */}
-                {billType === 'pakki' && (
-                  <div className="space-y-4 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
-                    <h3 className="text-lg font-semibold text-orange-900 flex items-center gap-2">
-                      <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">6</span>
-                      Payment Details
-                    </h3>
+                  {/* STEP 4: ITEMS */}
+                  <div className="space-y-5 p-4 sm:p-5 bg-purple-50/50 rounded-xl border border-purple-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                       <h3 className="text-lg font-bold text-purple-900 flex items-center gap-2">
+                        <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">4</span>
+                        Items & Products
+                      </h3>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onClick={handleAddItem}
+                        className="h-8 text-xs bg-purple-700 hover:bg-purple-800 font-bold"
+                      >
+                        + Add Product
+                      </Button>
+                    </div>
 
-                    <div className="space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <Label className="text-sm md:text-base font-semibold">Bank Information</Label>
-                        <div className="flex gap-2">
+                    <div className="space-y-4 max-h-[500px] overflow-y-auto border-2 border-dashed border-purple-200 rounded-xl p-3 sm:p-4 bg-white/50 custom-scrollbar">
+                      {items.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                             <Plus className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <p className="text-purple-900 font-bold text-sm">No items added</p>
+                          <p className="text-xs text-purple-500 mb-4">Start by adding a product to this bill</p>
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => setShowBankDetails(!showBankDetails)}
-                            className="text-xs md:text-sm"
+                            onClick={handleAddItem}
+                            className="border-purple-200 text-purple-700 hover:bg-purple-50"
                           >
-                            {showBankDetails ? 'Hide' : 'Show'} Details
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="default"
-                            size="sm"
-                            onClick={handleSaveBankDetails}
-                            className="text-xs md:text-sm"
-                          >
-                            + Save Bank
+                            Add Your First Item
                           </Button>
                         </div>
+                      ) : (
+                        items.map((item, index) => (
+                          <BillItemForm
+                            key={index}
+                            index={index}
+                            item={item}
+                            onUpdate={(updatedItem) => handleUpdateItem(index, updatedItem)}
+                            onRemove={() => handleRemoveItem(index)}
+                          />
+                        ))
+                      )}
+                    </div>
+
+                    <div className="bg-white p-4 rounded-xl border border-purple-100 shadow-sm flex justify-between items-center">
+                       <span className="text-sm font-black text-purple-900 uppercase">Items Sub-Total:</span>
+                       <span className="text-xl sm:text-2xl font-black text-purple-700">₹{itemsTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+
+                  {/* STEP 5: GST (PAKKI ONLY) */}
+                  {billType === 'pakki' && (
+                    <div className="space-y-5 p-4 sm:p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 shadow-sm">
+                      <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
+                        <span className="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">5</span>
+                        GST Settings
+                      </h3>
+
+                      <div className="space-y-4">
+                        <div className="bg-white/80 p-3 rounded-lg border border-indigo-100">
+                          <Label className="text-xs font-bold text-indigo-700 uppercase mb-1 block">Your GST Number</Label>
+                          <p className="font-mono text-sm font-bold text-gray-800">{COMPANY_INFO.gst}</p>
+                        </div>
+
+                        <GSTToggle
+                          isEnabled={isGstEnabled}
+                          onToggle={setIsGstEnabled}
+                          cgstPercent={cgstPercent}
+                          igstPercent={igstPercent}
+                          onPercentChange={(type, value) => {
+                            if (type === 'cgst') setCgstPercent(value)
+                            else if (type === 'igst') setIgstPercent(value)
+                          }}
+                          itemsTotal={itemsTotal}
+                          partyGst={partyGst}
+                          onPartyGstChange={setPartyGst}
+                        />
                       </div>
+                    </div>
+                  )}
 
-                      {showBankDetails && (
-                        <div className="space-y-4 p-4 border rounded-lg bg-white">
-                          {savedBankDetails.length > 0 && (
-                            <div className="space-y-2">
-                              <Label className="text-xs md:text-sm font-medium">Quick Select</Label>
-                              <Select onValueChange={(value) => loadBankDetails(savedBankDetails[parseInt(value)])}>
-                                <SelectTrigger className="text-sm md:text-base" suppressHydrationWarning>
-                                  <SelectValue placeholder="Choose from saved banks..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {savedBankDetails.map((bank, index) => (
-                                    <SelectItem key={bank.id || index} value={index.toString()}>
-                                      {bank.bank_name} - {bank.bank_account}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
+                  {/* STEP 6: BANK (PAKKI ONLY) */}
+                  {billType === 'pakki' && (
+                    <div className="space-y-5 p-4 sm:p-5 bg-orange-50/50 rounded-xl border border-orange-100 shadow-sm">
+                       <div className="flex items-center justify-between">
+                         <h3 className="text-lg font-bold text-orange-900 flex items-center gap-2">
+                          <span className="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">6</span>
+                          Bank Information
+                        </h3>
+                        <div className="flex gap-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleSaveBankDetails}
+                            className="h-8 text-[10px] sm:text-xs font-bold border-orange-200 text-orange-700 bg-white"
+                          >
+                            Save Details
+                          </Button>
+                        </div>
+                       </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                              <Label className="text-xs md:text-sm font-medium">Bank Name</Label>
-                              <Input
-                                placeholder="e.g., KARNATAKA BANK LTD."
-                                value={bankName}
-                                onChange={(e) => setBankName(e.target.value)}
-                                className="text-sm md:text-base"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-xs md:text-sm font-medium">IFSC Code</Label>
-                              <Input
-                                placeholder="e.g., KARB0000729"
-                                value={bankIFSC}
-                                onChange={(e) => setBankIFSC(e.target.value)}
-                                className="text-sm md:text-base"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-xs md:text-sm font-medium">Account Number</Label>
-                              <Input
-                                placeholder="e.g., 7292000100047001"
-                                value={bankAccount}
-                                onChange={(e) => setBankAccount(e.target.value)}
-                                className="text-sm md:text-base"
-                              />
-                            </div>
+                      <div className="space-y-5">
+                        {savedBankDetails.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-orange-800 uppercase">Quick Load Past Bank</Label>
+                            <Select onValueChange={(value) => loadBankDetails(savedBankDetails[parseInt(value)])}>
+                              <SelectTrigger className="h-10 bg-white border-orange-100" suppressHydrationWarning>
+                                <SelectValue placeholder="Select a saved bank profile..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {savedBankDetails.map((bank, index) => (
+                                  <SelectItem key={bank.id || index} value={index.toString()}>
+                                    {bank.bank_name} - {bank.bank_account}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="space-y-2 text-left">
+                            <Label className="text-xs font-bold text-gray-600">Bank Name</Label>
+                            <Input
+                              placeholder="Karnatka Bank..."
+                              value={bankName}
+                              onChange={(e) => setBankName(e.target.value)}
+                              className="h-10 bg-white"
+                            />
+                          </div>
+                          <div className="space-y-2 text-left">
+                            <Label className="text-xs font-bold text-gray-600">IFSC Code</Label>
+                            <Input
+                              placeholder="KARB000..."
+                              value={bankIFSC}
+                              onChange={(e) => setBankIFSC(e.target.value)}
+                              className="h-10 bg-white font-mono"
+                            />
+                          </div>
+                          <div className="space-y-2 text-left">
+                            <Label className="text-xs font-bold text-gray-600">Account No.</Label>
+                            <Input
+                              placeholder="7292..."
+                              value={bankAccount}
+                              onChange={(e) => setBankAccount(e.target.value)}
+                              className="h-10 bg-white font-mono"
+                            />
                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 7: FINAL REVIEW */}
-                <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <span className="bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">7</span>
-                    Final Review
-                  </h3>
-
-                  {/* Totals Summary */}
-                  <div className="bg-white p-4 rounded-lg border space-y-3">
-                    <Label className="text-sm md:text-base font-semibold">Bill Summary</Label>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Items Total:</span>
-                        <span className="font-medium">₹{itemsTotal.toFixed(2)}</span>
-                      </div>
-
-                      {billType === 'pakki' && isGstEnabled && (
-                        <div className="flex justify-between">
-                          <span>GST Total:</span>
-                          <span className="font-medium text-indigo-600">₹{gstTotal.toFixed(2)}</span>
-                        </div>
-                      )}
-
-                      {balance && parseFloat(balance) !== 0 && (
-                        <div className="flex justify-between">
-                          <span>Balance:</span>
-                          <span className="font-medium text-orange-600">₹{parseFloat(balance).toFixed(2)}</span>
-                        </div>
-                      )}
-
-                      <div className="border-t pt-2 flex justify-between text-base font-bold">
-                        <span>Grand Total:</span>
-                        <span className="text-green-600">₹{grandTotal.toFixed(2)}</span>
                       </div>
                     </div>
-
-                    <div className="space-y-2 pt-2 border-t">
-                      <Label className="text-sm md:text-base font-medium">Amount in Words</Label>
-                      <Input
-                        placeholder="Auto-generated from grand total"
-                        value={totalAmountWords}
-                        onChange={(e) => setTotalAmountWords(e.target.value)}
-                        className="text-sm md:text-base"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* CREATE BILL BUTTON */}
-                <div className="pt-4 border-t">
-                  <Button
-                    onClick={handleSaveBill}
-                    disabled={loading || !partyName.trim() || items.length === 0}
-                    className="w-full text-base font-semibold py-3"
-                    size="lg"
-                  >
-                    {loading ? 'Creating Bill...' : `Create ${billType === 'pakki' ? 'Pakki' : 'Kacchi'} Bill`}
-                  </Button>
-
-                  {(!partyName.trim() || items.length === 0) && (
-                    <p className="text-sm text-muted-foreground mt-2 text-center">
-                      {!partyName.trim() ? 'Select a party' : 'Add at least one item'} to create bill
-                    </p>
                   )}
-                </div>
+
+                  {/* FINAL STEP: GRAND REVIEW */}
+                  <div className="space-y-5 p-4 sm:p-6 bg-slate-900 text-white rounded-2xl shadow-xl border-4 border-slate-800">
+                    <h3 className="text-xl font-black flex items-center gap-3">
+                      <span className="bg-green-500 text-slate-900 rounded-lg w-8 h-8 flex items-center justify-center text-base font-black italic">✓</span>
+                      Final Review
+                    </h3>
+
+                    <div className="space-y-4 pt-2">
+                       <div className="flex justify-between items-center text-slate-400 text-sm">
+                          <span className="font-bold">Items Total:</span>
+                          <span className="font-mono">₹{itemsTotal.toFixed(2)}</span>
+                       </div>
+                       
+                       {billType === 'pakki' && gstTotal > 0 && (
+                         <div className="flex justify-between items-center text-blue-400 text-sm">
+                            <span className="font-bold">GST (Applied):</span>
+                            <span className="font-mono">₹{gstTotal.toFixed(2)}</span>
+                         </div>
+                       )}
+
+                       {parseFloat(balance || '0') !== 0 && (
+                         <div className="flex justify-between items-center text-amber-400 text-sm">
+                            <span className="font-bold">Old Balance:</span>
+                            <span className="font-mono">₹{parseFloat(balance).toFixed(2)}</span>
+                         </div>
+                       )}
+
+                       <div className="pt-4 border-t border-slate-700 flex justify-between items-end">
+                          <div>
+                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">In Words:</p>
+                             <p className="text-xs text-slate-300 font-medium italic max-w-[200px] leading-snug">{totalAmountWords}</p>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-[10px] text-green-500 font-black uppercase tracking-widest mb-1">Invoice Total</p>
+                             <p className="text-3xl sm:text-4xl font-black text-green-400">₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="pt-8 flex flex-col sm:flex-row items-center gap-4">
+                      <Button
+                        type="submit"
+                        className="w-full sm:flex-1 h-14 text-lg font-black bg-green-500 hover:bg-green-400 text-slate-900 shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all hover:scale-[1.02] active:scale-95"
+                        disabled={loading || !partyName || items.length === 0}
+                      >
+                        {loading ? 'Sychronizing...' : 'GENERATE BILL NOW'}
+                      </Button>
+                      <Link href="/bills" className="w-full sm:w-auto">
+                        <Button type="button" variant="ghost" className="w-full h-14 text-slate-500 hover:text-white font-bold uppercase tracking-tighter text-xs">
+                          Discard
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </div>
 
-          {/* Preview Section — hidden on mobile/tablet to prevent scroll-stealing */}
-          <div className="hidden xl:flex xl:flex-col xl:h-full xl:overflow-hidden bg-gray-50/30 rounded-xl border">
-            <div className="p-2 border-b bg-gray-100/50 text-xs font-bold text-gray-500 uppercase flex justify-between items-center">
-              <span>Live Preview</span>
-              <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Auto-scaled to fit</span>
+          {/* Preview Section — hidden on small screens */}
+          <div className="hidden xl:flex xl:flex-col xl:h-full xl:overflow-hidden bg-white/50 rounded-2xl border border-gray-200">
+            <div className="p-3 border-b bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest flex justify-between items-center">
+              <span>Live PDF Preview Engine</span>
+              <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-black italic">A4 Scaled v2.0</span>
             </div>
             <div className="flex-1 overflow-hidden">
-            <BillPreview
-              billType={billType}
-              billNumber={nextBillNumber || ''}
-              billDate={billDate}
-              partyName={partyName}
-              partyGst={isGstEnabled ? partyGst : undefined}
-              vehicleNumber={vehicleNumber}
-              balance={balance && parseFloat(balance) > 0 ? parseFloat(balance) : undefined}
-              bankName={billType === 'pakki' ? bankName : undefined}
-              bankIFSC={billType === 'pakki' ? bankIFSC : undefined}
-              bankAccount={billType === 'pakki' ? bankAccount : undefined}
-              showBankDetails={showBankDetails}
-              items={items}
-              itemsTotal={itemsTotal}
-              gstEnabled={isGstEnabled}
-              cgstPercent={isGstEnabled ? cgstPercent : 0}
-              igstPercent={isGstEnabled ? igstPercent : 0}
-              gstTotal={gstTotal}
-              grandTotal={grandTotal}
-              totalAmountWords={totalAmountWords}
-            />
+              <BillPreview
+                billType={billType}
+                billNumber={nextBillNumber || ''}
+                billDate={billDate}
+                partyName={partyName}
+                partyGst={isGstEnabled ? partyGst : undefined}
+                vehicleNumber={vehicleNumber}
+                balance={balance && parseFloat(balance) > 0 ? parseFloat(balance) : undefined}
+                bankName={billType === 'pakki' ? bankName : undefined}
+                bankIFSC={billType === 'pakki' ? bankIFSC : undefined}
+                bankAccount={billType === 'pakki' ? bankAccount : undefined}
+                showBankDetails={showBankDetails}
+                items={items}
+                itemsTotal={itemsTotal}
+                gstEnabled={isGstEnabled}
+                cgstPercent={isGstEnabled ? cgstPercent : 0}
+                igstPercent={isGstEnabled ? igstPercent : 0}
+                gstTotal={gstTotal}
+                grandTotal={grandTotal}
+                totalAmountWords={totalAmountWords}
+              />
             </div>
           </div>
         </div>
       </div>
+
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
@@ -827,13 +806,14 @@ export default function CreateBillPage() {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
+          background: #cbd5e1;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
+          background: #94a3b8;
         }
       `}</style>
     </ProtectedRoute>
   )
 }
+

@@ -578,11 +578,11 @@ export default function MonthlyBillBookPage() {
           <CardDescription>Choose the period for which you want to generate the bill book</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Financial Year</label>
+          <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="w-full">
+              <label className="text-sm font-semibold mb-2 block text-gray-700">Financial Year</label>
               <Select value={selectedFY} onValueChange={setSelectedFY}>
-                <SelectTrigger suppressHydrationWarning>
+                <SelectTrigger suppressHydrationWarning className="w-full h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -593,10 +593,10 @@ export default function MonthlyBillBookPage() {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Month</label>
+            <div className="w-full">
+              <label className="text-sm font-semibold mb-2 block text-gray-700">Month</label>
               <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                <SelectTrigger suppressHydrationWarning>
+                <SelectTrigger suppressHydrationWarning className="w-full h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -607,13 +607,14 @@ export default function MonthlyBillBookPage() {
               </Select>
             </div>
 
-            <div className="flex items-end">
-              <Button onClick={fetchBills} disabled={loading}>
-                {loading ? 'Loading...' : 'Refresh Bills'}
+            <div className="flex items-end w-full">
+              <Button onClick={fetchBills} disabled={loading} className="w-full h-11 bg-gray-900 hover:bg-black">
+                {loading ? 'Crunching data...' : 'Refresh Bills'}
               </Button>
             </div>
           </div>
         </CardContent>
+
       </Card>
 
       {/* Bill Count and Download */}

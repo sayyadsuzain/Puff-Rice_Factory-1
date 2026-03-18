@@ -41,64 +41,66 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
   }
 
   return (
-    <div
-      className="a4-container bill-display relative overflow-hidden"
-      style={{
-        maxWidth: '210mm',
-        minHeight: '297mm',
-        margin: '0 auto',
-        backgroundColor: 'white',
-        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-        padding: '15mm',
-        width: '100%',
-        fontFamily: 'Arial, sans-serif'
-      }}
-    >
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
+    <div className="w-full overflow-x-auto pb-8 flex justify-center bg-gray-50/50 rounded-xl p-2 md:p-4">
+      <div
+        className="a4-container bill-display relative shadow-xl print:shadow-none"
+        style={{
+          width: '100%',
+          maxWidth: '800px', // Roughly A4 but fits well on desktop grids
+          minHeight: 'auto',
+          aspectRatio: '1 / 1.414', // A4 Aspect Ratio
+          margin: '0 auto',
+          backgroundColor: 'white',
+          padding: 'clamp(12px, 4vw, 40px)', // Responsive padding
+          fontFamily: 'Arial, sans-serif'
+        }}
+      >
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
 
-      {/* Watermark */}
-      <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.06]"
-        style={{ fontSize: '320px', fontWeight: 900, letterSpacing: '25px', fontFamily: '"Playfair Display", serif', color: '#c0c0c0' }}>
-        MS
-      </div>
-
-      <div className="relative z-10 flex flex-col h-full">
-        {/* Print Button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }} className="no-print">
-          <Button onClick={handlePrint} variant="outline" size="sm">
-            <Printer className="h-4 w-4 mr-2" />
-            Print PDF
-          </Button>
+        {/* Watermark - Scaled for mobile */}
+        <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.06] text-[40vw] sm:text-[320px]"
+          style={{ fontWeight: 900, letterSpacing: '25px', fontFamily: '"Playfair Display", serif', color: '#c0c0c0' }}>
+          MS
         </div>
 
-        {/* Header Section */}
-        <div className="w-full mb-2">
-          <div className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-tight mb-1">
-            {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
-          </div>
-          <div className="grid grid-cols-3 items-start mb-2">
-            <div className="text-[10px]"></div>
-            <div className="text-center">
-              <div className="inline-block bg-red-600 text-white px-8 py-1 rounded-sm text-[11px] font-black tracking-widest shadow-sm uppercase">
-                {isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}
-              </div>
-            </div>
-            <div className="text-right text-[10px] space-y-0.5 font-bold text-gray-800">
-              <div className="uppercase">Contact:</div>
-              <div>9860022450</div>
-              <div>9561420666</div>
-            </div>
+        <div className="relative z-10 flex flex-col h-full">
+          {/* Print Button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }} className="no-print">
+            <Button onClick={handlePrint} variant="outline" size="sm" className="h-8 text-xs">
+              <Printer className="h-3.5 w-3.5 mr-2" />
+              Print PDF
+            </Button>
           </div>
 
-          <h1 className="text-center text-5xl font-bold text-red-600 tracking-tight mb-1 mt-1" style={{ textShadow: '0.5px 0.5px 0px rgba(0,0,0,0.05)' }}>
-            M S TRADING COMPANY
-          </h1>
-          <div className="text-center text-[10px] tracking-widest text-gray-700 font-bold uppercase">
-            KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52
-          </div>
-          {!isKacchi && (
-            <p className="text-center text-[11px] font-bold mt-1 text-gray-800 tracking-widest uppercase">GST IN : {COMPANY_INFO.gst}</p>
-          )}
+          {/* Header Section */}
+          <div className="w-full mb-2">
+            <div className="text-center text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-tight mb-1">
+              {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
+            </div>
+            <div className="grid grid-cols-3 items-start mb-2">
+              <div className="text-[10px]"></div>
+              <div className="text-center">
+                <div className="inline-block bg-red-600 text-white px-3 sm:px-8 py-0.5 sm:py-1 rounded-sm text-[8px] sm:text-[11px] font-black tracking-widest shadow-sm uppercase whitespace-nowrap">
+                  {isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}
+                </div>
+              </div>
+              <div className="text-right text-[8px] sm:text-[10px] space-y-0.5 font-bold text-gray-800">
+                <div className="uppercase">Contact:</div>
+                <div>9860022450</div>
+                <div>9561420666</div>
+              </div>
+            </div>
+
+            <h1 className="text-center text-2xl sm:text-5xl font-bold text-red-600 tracking-tight mb-1 mt-1 leading-tight" style={{ textShadow: '0.5px 0.5px 0px rgba(0,0,0,0.05)' }}>
+              M S TRADING COMPANY
+            </h1>
+            <div className="text-center text-[7px] sm:text-[10px] tracking-widest text-gray-700 font-bold uppercase line-clamp-1 sm:line-clamp-none">
+              KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52
+            </div>
+            {!isKacchi && (
+              <p className="text-center text-[9px] sm:text-[11px] font-bold mt-1 text-gray-800 tracking-widest uppercase">GST IN : {COMPANY_INFO.gst}</p>
+            )}
+
 
           {/* Double Red Header Lines */}
           <div className="border-b-[4px] border-red-600 mt-2"></div>
@@ -218,27 +220,27 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
               </div>
             </div>
 
-            <div className="text-right space-y-1">
-              <div className="flex justify-between items-center text-sm">
+            <div className="text-right space-y-1 w-full sm:w-auto mt-2 sm:mt-0">
+              <div className="flex justify-between items-center text-xs sm:text-sm">
                 <span className="font-bold text-gray-600">SUB TOTAL</span>
-                <span className="font-bold text-sm">₹ {bill.total_amount.toFixed(2)}</span>
+                <span className="font-bold">₹ {bill.total_amount.toFixed(2)}</span>
               </div>
 
               {!isKacchi && bill.is_gst_enabled && (bill.gst_total || 0) > 0 && (
                 <div className="space-y-1 pt-1 border-t border-gray-100 mt-1">
                   {(bill.cgst_percent || 0) > 0 && (
-                    <div className="flex justify-between items-center text-xs">
+                    <div className="flex justify-between items-center text-[10px] sm:text-xs">
                       <span className="text-gray-600">CGST @ {bill.cgst_percent}%</span>
                       <span className="font-bold">₹ {bill.cgst_amount.toFixed(2)}</span>
                     </div>
                   )}
                   {(bill.igst_percent || 0) > 0 && (
-                    <div className="flex justify-between items-center text-xs">
+                    <div className="flex justify-between items-center text-[10px] sm:text-xs">
                       <span className="text-gray-600">IGST @ {bill.igst_percent}%</span>
                       <span className="font-bold">₹ {bill.igst_amount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-gray-100">
+                  <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold pt-1 border-t border-gray-100">
                     <span className="text-gray-600">GST Total:</span>
                     <span>₹ {bill.gst_total.toFixed(2)}</span>
                   </div>
@@ -246,47 +248,50 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
               )}
 
               {bill.balance != null && bill.balance > 0 && (
-                <div className="flex justify-between items-center text-sm pt-1">
+                <div className="flex justify-between items-center text-[10px] sm:text-sm pt-1">
                   <span className="font-bold text-gray-600 uppercase">BALANCE</span>
                   <span className="font-bold text-orange-600">₹ {bill.balance.toFixed(2)}</span>
                 </div>
               )}
 
-              <div className="border-t-[3px] border-black pt-2 mt-2">
+              <div className="border-t-[2px] sm:border-t-[3px] border-black pt-2 mt-2">
                 <div className="flex justify-between items-center px-1">
-                  <span className="text-xl font-black italic">TOTAL</span>
-                  <span className="text-2xl font-black">₹ {grandTotal.toFixed(2)}</span>
+                  <span className="text-sm sm:text-xl font-black italic">TOTAL</span>
+                  <span className="text-base sm:text-2xl font-black">₹ {grandTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Auth Signatory Area */}
-          <div className="mt-auto pt-6 flex justify-between items-end pb-2">
-            <div className="text-left w-1/2">
-              {/* Bank Details Moved Here */}
+          <div className="mt-auto pt-4 sm:pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-end pb-2 gap-4">
+
+            <div className="text-left w-full sm:w-1/2">
+              {/* Bank Details */}
               {!isKacchi && bill.bank_name && bill.bank_ifsc && bill.bank_account && (
-                <div className="text-[11px]">
-                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAIL S:</div>
-                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
+                <div className="text-[9px] sm:text-[11px]">
+                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAILS :</div>
+                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[8px] sm:text-[10px] text-gray-800">
                     <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bill.bank_name}</span></div>
-                    <div className="flex gap-2"><span>IFSC CODE NO. :</span> <span className="text-gray-900">{bill.bank_ifsc}</span></div>
-                    <div className="flex gap-2"><span>S. B. No. :</span> <span className="text-gray-900">{bill.bank_account}</span></div>
+                    <div className="flex gap-2"><span>IFSC :</span> <span className="text-gray-900">{bill.bank_ifsc}</span></div>
+                    <div className="flex gap-2"><span>A/C No. :</span> <span className="text-gray-900">{bill.bank_account}</span></div>
                   </div>
                 </div>
               )}
             </div>
-            <div className="text-right">
-              <div className="text-[11px] font-bold text-red-600 mb-8 uppercase tracking-tight">
+            <div className="text-right w-full sm:w-auto">
+              <div className="text-[9px] sm:text-[11px] font-bold text-red-600 mb-4 sm:mb-8 uppercase tracking-tight">
                 For M S TRADING COMPANY
               </div>
-              <div className="text-[10px] font-medium w-44 ml-auto text-center border-t border-gray-400 pt-1 text-gray-600">
+              <div className="text-[9px] sm:text-[10px] font-medium w-full sm:w-44 ml-auto text-center border-t border-gray-400 pt-1 text-gray-600">
                 Auth. Signatory
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
 
       {/* Print Styles */}
       <style jsx>{`

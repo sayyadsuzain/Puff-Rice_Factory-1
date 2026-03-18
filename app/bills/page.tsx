@@ -217,11 +217,11 @@ export default function BillsPage() {
                 <div className="grid grid-cols-1 gap-4 md:hidden">
                   {filteredBills.map((bill) => (
                     <Card key={bill.id} className="overflow-hidden border-l-4 shadow-sm" style={{ borderLeftColor: bill.bill_type === 'kacchi' ? '#ef4444' : '#6366f1' }}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-lg font-bold">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center flex-wrap gap-1.5 mb-1">
+                              <span className="text-base sm:text-lg font-black tracking-tight text-gray-900">
                                 {(() => {
                                   const billNum = String(bill.bill_number)
                                   if (billNum.startsWith('P') || billNum.startsWith('K')) {
@@ -233,40 +233,34 @@ export default function BillsPage() {
                                   }
                                 })()}
                               </span>
-                              <Badge variant={bill.bill_type === 'kacchi' ? 'default' : 'secondary'} className="text-[10px] h-5">
+                              <Badge variant={bill.bill_type === 'kacchi' ? 'destructive' : 'default'} className="text-[9px] px-1.5 h-4 uppercase font-bold">
                                 {bill.bill_type === 'kacchi' ? 'Kacchi' : 'Pakki'}
                               </Badge>
                             </div>
-                            <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 line-clamp-1">
                               {bill.parties?.name || 'Unknown Party'}
                             </p>
-                            <p className="text-xs text-gray-500">{formatDate(bill.bill_date)}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                               <FileText className="h-3 w-3 text-gray-400" />
+                               <span className="text-[10px] sm:text-xs text-gray-500">{formatDate(bill.bill_date)}</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-gray-900">₹{bill.total_amount.toFixed(2)}</p>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm sm:text-base font-black text-gray-900">₹{bill.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 mt-4">
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100">
                           <Link href={`/bills/${bill.id}`} className="w-full">
-                            <Button variant="outline" size="sm" className="w-full gap-2 h-9">
-                              <Eye className="h-4 w-4" />
-                              View
+                            <Button variant="outline" size="sm" className="w-full h-9 text-[10px] sm:text-xs gap-1.5 bg-gray-50 hover:bg-white text-blue-600 border-blue-100">
+                              <Eye className="h-3.5 w-3.5" />
+                              View Bill
                             </Button>
                           </Link>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full gap-2 h-9"
-                            onClick={() => handleEdit(bill.id)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full gap-2 h-9"
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full h-9 text-[10px] sm:text-xs gap-1.5"
                             onClick={() => handlePrint(bill.id)}
                           >
                             <Printer className="h-4 w-4" />
