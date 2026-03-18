@@ -118,7 +118,7 @@ export default function BillDetailPage() {
     }
 
     setIsSharing(true)
-    toast.loading('Preparing PDF...', { id: 'whatsapp-share' })
+    const toastId = toast.loading('Preparing accurate PDF...', { id: 'whatsapp-share' })
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -126,31 +126,57 @@ export default function BillDetailPage() {
 
       const safeBillNumber = String(bill.bill_number).replace(/\//g, '-')
       const filename = `${safeBillNumber} - ${partyName}.pdf`
+      const downloadUrl = `/api/bill-pdf-download?id=${billId}${token ? `&token=${token}` : ''}`
 
-      // Detect mobile by screen width (more reliable than userAgent for simple cases)
+      // Detect mobile viewports
       const isMobile = window.innerWidth < 1024
 
       if (isMobile) {
-        // On Mobile: open the PDF directly via the download URL.
-        // This avoids NotAllowedError (Gesture Timeout) when trying to share a blob.
-        // Browsers like Safari and Chrome mobile have a native "Share" button in their PDF viewer.
-        const pdfUrl = `/api/bill-pdf-download?id=${billId}${token ? `&token=${token}` : ''}`
-        toast.dismiss('whatsapp-share')
-        toast.success('PDF opened! Tap the Share button in your browser to send via WhatsApp', {
-          duration: 7000,
-        })
-        window.open(pdfUrl, '_blank')
+        // Fetch the blob first to see if it's healthy
+        const response = await fetch(downloadUrl)
+        if (!response.ok) throw new Error('Failed to generate PDF')
+        const blob = await response.blob()
+        const file = new File([blob], filename, { type: 'application/pdf' })
+
+        // Check if Web Share API can share the file
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          toast.success('PDF Ready!', {
+            id: 'whatsapp-share',
+            description: 'Tap "Share" then select WhatsApp',
+            action: {
+              label: 'Share PDF',
+              onClick: async () => {
+                try {
+                  await navigator.share({
+                    files: [file],
+                    title: `Bill ${bill.bill_number}`,
+                    text: `Bill from M S Trading for ${partyName}`,
+                  })
+                } catch (shareErr: any) {
+                  if (shareErr.name !== 'AbortError') {
+                    // Fallback to direct URL if share fails
+                    window.open(downloadUrl, '_blank')
+                  }
+                }
+              }
+            },
+            duration: 10000,
+          })
+        } else {
+          // Fallback if sharing is not supported: open in new tab
+          toast.success('PDF prepared!', {
+            id: 'whatsapp-share',
+            description: 'Opening PDF... Use the Share button (↑) in your browser to send to WhatsApp.',
+            duration: 6000,
+          })
+          window.open(downloadUrl, '_blank')
+        }
         return
       }
 
-      // Desktop: fetch the blob and download (already working fine)
-      const downloadUrl = `/api/bill-pdf-download?id=${billId}${token ? `&token=${token}` : ''}`
+      // Desktop: just download the PDF (already works fine)
       const response = await fetch(downloadUrl)
-
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF')
-      }
-
+      if (!response.ok) throw new Error('Failed to generate PDF')
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -164,7 +190,7 @@ export default function BillDetailPage() {
       })
     } catch (error: any) {
       console.error('WhatsApp share error:', error)
-      toast.error('Failed to generate PDF. Please try again.', { id: 'whatsapp-share' })
+      toast.error('Failed to generate PDF. Please check your connection.', { id: 'whatsapp-share' })
     } finally {
       setIsSharing(false)
     }
