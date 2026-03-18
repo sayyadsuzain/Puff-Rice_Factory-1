@@ -557,18 +557,30 @@ function generateBillHTML(bill: any, items: any[], _pageNumber: number, _totalPa
   const itemRows = items.map((item) => {
     const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
     return `
-      <tr class="item-row">
-        <td>
-          <div>${item.particular}</div>
+      <tr class="item-row" style="height: 32px;">
+        <td style="border-left: 1px solid #9ca3af; border-right: 1px solid #e5e7eb; padding: 6px 8px;">
+          <div style="font-weight: 500;">${item.particular}</div>
           ${isPaddyItem && item.weight_kg ? `<div style="font-size: 10px; color: #2563eb; font-weight: bold;">(${item.weight_kg}kg total)</div>` : ''}
         </td>
-        <td style="text-align: center;">${item.qty_bags || ''}</td>
-        <td style="text-align: center;">${isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}</td>
-        <td style="text-align: center;">${item.rate ? `${item.rate.toFixed(2)}${isPaddyItem ? ' ₹/kg' : ''}` : ''}</td>
-        <td style="text-align: right; font-weight: bold;">${item.amount?.toFixed(2) || ''}</td>
+        <td style="border-right: 1px solid #e5e7eb; text-align: center; padding: 6px 8px;">${item.qty_bags || ''}</td>
+        <td style="border-right: 1px solid #e5e7eb; text-align: center; padding: 6px 8px;">${isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}</td>
+        <td style="border-right: 1px solid #e5e7eb; text-align: center; padding: 6px 8px;">${item.rate ? `${item.rate.toFixed(2)}${isPaddyItem ? ' ₹/kg' : ''}` : ''}</td>
+        <td style="border-right: 1px solid #9ca3af; text-align: right; font-weight: bold; padding: 6px 8px;">${item.amount?.toFixed(2) || ''}</td>
       </tr>
     `
   }).join('')
+
+  // Generate empty rows to fill the table (total 18 rows like BillPreview)
+  const emptyRowsCount = Math.max(0, 18 - items.length)
+  const emptyRows = Array.from({ length: emptyRowsCount }).map(() => `
+    <tr style="height: 32px;">
+      <td style="border-left: 1px solid #9ca3af; border-right: 1px solid #f3f4f6; color: transparent; select: none;">-</td>
+      <td style="border-right: 1px solid #f3f4f6; color: transparent; select: none;">-</td>
+      <td style="border-right: 1px solid #f3f4f6; color: transparent; select: none;">-</td>
+      <td style="border-right: 1px solid #f3f4f6; color: transparent; select: none;">-</td>
+      <td style="border-right: 1px solid #9ca3af; color: transparent; select: none;">-</td>
+    </tr>
+  `).join('')
  
   return `
     <div class="a4-page">
@@ -576,58 +588,58 @@ function generateBillHTML(bill: any, items: any[], _pageNumber: number, _totalPa
       
       <div class="content-wrapper">
         <div class="header-top">
-          <div class="jurisdiction">${!isKacchi ? 'Subject to Sangli Jurisdiction' : ''}</div>
+          <div class="jurisdiction" style="font-size: 10px; color: #6b7280; font-weight: bold; text-transform: uppercase;">${!isKacchi ? 'Subject to Sangli Jurisdiction' : ''}</div>
           <div class="header-grid">
-            <div></div>
-            <div style="text-align: center;">
-              <div class="memo-badge">${isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}</div>
+            <div style="flex: 1;"></div>
+            <div style="flex: 1; text-align: center;">
+              <div class="memo-badge" style="background-color: #dc2626; color: white; padding: 4px 16px; border-radius: 2px; font-size: 11px; font-weight: 900; letter-spacing: 1px; display: inline-block;">${isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}</div>
             </div>
-            <div class="contact-info">
+            <div class="contact-info" style="flex: 1; text-align: right; font-size: 10px; font-bold: bold; color: #1f2937;">
               <div style="text-transform: uppercase;">Contact:</div>
               <div>9860022450</div>
               <div>9561420666</div>
             </div>
           </div>
           
-          <h1 class="company-name">M S TRADING COMPANY</h1>
-          <div class="company-address">KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52</div>
-          ${!isKacchi ? `<div class="company-gst">GST IN : ${companyGst}</div>` : ''}
+          <h1 class="company-name" style="color: #dc2626; font-size: 48px; font-weight: bold; text-align: center; margin: 4px 0; letter-spacing: -1px;">M S TRADING COMPANY</h1>
+          <div class="company-address" style="text-align: center; font-size: 10px; font-weight: bold; color: #374151; text-transform: uppercase; letter-spacing: 1px;">KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52</div>
+          ${!isKacchi ? `<div class="company-gst" style="text-align: center; font-size: 11px; font-weight: bold; color: #1f2937; margin-top: 4px;">GST IN : ${companyGst}</div>` : ''}
           
-          <div class="red-divider-main"></div>
-          <div class="red-divider-sub"></div>
+          <div style="border-bottom: 4px solid #dc2626; margin-top: 8px;"></div>
+          <div style="border-bottom: 1px solid #dc2626; margin-top: 2px;"></div>
         </div>
 
-        <div class="bill-info-grid">
+        <div class="bill-info-grid" style="display: grid; grid-template-cols: 1fr 1fr 1fr; align-items: center; padding: 8px 0;">
           <div>
-            <div class="info-label">From :</div>
-            <div style="font-weight: bold;">M S TRADING COMPANY</div>
+            <div class="info-label" style="font-size: 10px; font-weight: bold; color: #6b7280; text-transform: uppercase;">From :</div>
+            <div style="font-weight: bold; font-size: 14px;">M S TRADING COMPANY</div>
           </div>
           <div style="text-align: center;">
-            <div class="info-label">No.</div>
-            <div class="bill-no">${formattedBillNo}</div>
+            <div class="info-label" style="font-size: 10px; font-weight: bold; color: #6b7280; text-transform: uppercase;">No.</div>
+            <div class="bill-no" style="font-size: 20px; font-weight: 900; color: #dc2626;">${formattedBillNo}</div>
           </div>
           <div style="text-align: right;">
-            <div class="info-label">Date :</div>
+            <div class="info-label" style="font-size: 10px; font-weight: bold; color: #6b7280; text-transform: uppercase;">Date :</div>
             <div style="font-weight: bold; font-size: 16px;">${billDateStr}</div>
           </div>
         </div>
 
-        <div class="party-details">
-          <div class="party-name-row">
+        <div class="party-details" style="border: 1px solid #d1d5db; border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+          <div class="party-name-row" style="font-size: 16px;">
             <span style="font-weight: bold;">M/s. </span>
-            <span class="party-name-underline">${partyName || '_'.repeat(40)}</span>
+            <span class="party-name-underline" style="border-bottom: 1px dotted #9ca3af; min-width: 300px; display: inline-block;">${partyName || ''}</span>
           </div>
           ${(bill.vehicle_number || (!isKacchi && partyGst)) ? `
-            <div class="vehicle-gst-row">
+            <div class="vehicle-gst-row" style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px; font-weight: 600;">
               ${bill.vehicle_number ? `
                 <div>
-                  <span style="color: #4b5563;">Vehicle No.: </span>
+                  <span style="color: #4b5563; font-weight: bold;">Vehicle No.: </span>
                   <span>${bill.vehicle_number}</span>
                 </div>
               ` : '<div></div>'}
               ${!isKacchi && partyGst ? `
                 <div>
-                  <span style="color: #4b5563;">GST No.: </span>
+                  <span style="color: #4b5563; font-weight: bold;">GST No.: </span>
                   <span>${partyGst}</span>
                 </div>
               ` : ''}
@@ -635,32 +647,33 @@ function generateBillHTML(bill: any, items: any[], _pageNumber: number, _totalPa
           ` : ''}
         </div>
 
-        <div class="items-table-container">
-          <table class="items-table">
-            <thead>
+        <div class="items-table-container" style="flex: 1; min-height: 450px;">
+          <table class="items-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead style="background-color: #f9fafb;">
               <tr>
-                <th style="width: auto;">Particulars</th>
-                <th style="width: 96px; text-align: center;">Qty. Bags</th>
-                <th style="width: 112px; text-align: center;">Weight in Kg.</th>
-                <th style="width: 96px; text-align: center;">Rate</th>
-                <th style="width: 128px; text-align: right;">Amount</th>
+                <th style="border: 1px solid #9ca3af; padding: 8px; text-align: left; font-weight: 900; text-transform: uppercase; font-size: 11px;">Particulars</th>
+                <th style="border: 1px solid #9ca3af; padding: 8px; text-align: center; font-weight: 900; text-transform: uppercase; font-size: 11px; width: 80px;">Qty. Bags</th>
+                <th style="border: 1px solid #9ca3af; padding: 8px; text-align: center; font-weight: 900; text-transform: uppercase; font-size: 11px; width: 100px;">Weight in Kg.</th>
+                <th style="border: 1px solid #9ca3af; padding: 8px; text-align: center; font-weight: 900; text-transform: uppercase; font-size: 11px; width: 80px;">Rate</th>
+                <th style="border: 1px solid #9ca3af; padding: 8px; text-align: right; font-weight: 900; text-transform: uppercase; font-size: 11px; width: 120px;">Amount</th>
               </tr>
             </thead>
             <tbody>
               ${itemRows}
-              <tr class="spacer-row">
-                <td style="border-bottom: 1px solid #9ca3af;"></td>
-                <td style="border-bottom: 1px solid #9ca3af;"></td>
-                <td style="border-bottom: 1px solid #9ca3af;"></td>
-                <td style="border-bottom: 1px solid #9ca3af;"></td>
-                <td style="border-bottom: 1px solid #9ca3af;"></td>
+              ${emptyRows}
+              <tr class="spacer-row" style="height: 0;">
+                <td style="border-top: 1px solid #9ca3af;"></td>
+                <td style="border-top: 1px solid #9ca3af;"></td>
+                <td style="border-top: 1px solid #9ca3af;"></td>
+                <td style="border-top: 1px solid #9ca3af;"></td>
+                <td style="border-top: 1px solid #9ca3af;"></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="form-footer">
-          <div class="footer-grid">
+        <div class="form-footer" style="margin-top: 12px; border-top: 3px solid black; padding-top: 8px;">
+          <div class="footer-grid" style="display: grid; grid-template-cols: 1.2fr 1fr; gap: 20px;">
             <div class="words-section">
               <div>
                 <div style="font-weight: bold; font-size: 10px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Rs. in Words:</div>
@@ -670,63 +683,63 @@ function generateBillHTML(bill: any, items: any[], _pageNumber: number, _totalPa
               </div>
             </div>
  
-            <div class="totals-section">
-              <div class="total-row">
-                <span class="total-label">SUB TOTAL</span>
+            <div class="totals-section" style="text-align: right; space-y: 4px;">
+              <div class="total-row" style="display: flex; justify-content: space-between; font-size: 14px;">
+                <span style="font-weight: bold; color: #4b5563;">SUB TOTAL</span>
                 <span style="font-weight: bold;">₹ ${(bill.total_amount || 0).toFixed(2)}</span>
               </div>
  
               ${!isKacchi && bill.is_gst_enabled && (bill.gst_total || 0) > 0 ? `
                 <div style="margin-top: 4px; border-top: 1px solid #f3f4f6; padding-top: 4px;">
                   ${(bill.cgst_percent || 0) > 0 ? `
-                    <div class="total-row" style="font-size: 12px; color: #4b5563;">
+                    <div class="total-row" style="display: flex; justify-content: space-between; font-size: 12px; color: #4b5563;">
                       <span>CGST @ ${bill.cgst_percent}%</span>
                       <span style="font-weight: bold; color: black;">₹ ${bill.cgst_amount.toFixed(2)}</span>
                     </div>
                   ` : ''}
                    ${(bill.igst_percent || 0) > 0 ? `
-                    <div class="total-row" style="font-size: 12px; color: #4b5563;">
+                    <div class="total-row" style="display: flex; justify-content: space-between; font-size: 12px; color: #4b5563;">
                       <span>IGST @ ${bill.igst_percent}%</span>
                       <span style="font-weight: bold; color: black;">₹ ${bill.igst_amount.toFixed(2)}</span>
                     </div>
                   ` : ''}
-                  <div class="total-row" style="font-size: 12px; font-weight: bold; padding-top: 4px; border-top: 1px solid #f3f4f6; margin-top: 2px;">
-                    <span>GST Total:</span>
+                  <div class="total-row" style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; padding-top: 4px; border-top: 1px solid #f3f4f6; margin-top: 2px;">
+                    <span style="color: #4b5563;">GST Total:</span>
                     <span>₹ ${bill.gst_total.toFixed(2)}</span>
                   </div>
                 </div>
               ` : ''}
  
               ${bill.balance > 0 ? `
-                <div class="total-row" style="margin-top: 4px;">
-                  <span class="total-label">BALANCE</span>
+                <div class="total-row" style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 14px;">
+                  <span style="font-weight: bold; color: #4b5563; text-transform: uppercase;">BALANCE</span>
                   <span style="font-weight: bold; color: #ea580c;">₹ ${bill.balance.toFixed(2)}</span>
                 </div>
               ` : ''}
  
-              <div class="grand-total-section">
-                <div class="grand-total-row">
-                  <span class="grand-total-label">TOTAL</span>
-                  <span class="grand-total-value">₹ ${grandTotal.toFixed(2)}</span>
+              <div style="border-top: 3px solid black; margin-top: 8px; padding-top: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 20px; font-weight: 900; font-style: italic;">TOTAL</span>
+                  <span style="font-size: 24px; font-weight: 900;">₹ ${grandTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </div>
  
-          <div class="signature-area">
-            <div class="bank-info">
+          <div class="signature-area" style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px;">
+            <div class="bank-info" style="text-align: left; width: 50%;">
               ${(!isKacchi && bill.bank_name) ? `
-                <div class="bank-title">BANK DETAILS:</div>
-                <div class="bank-grid">
-                  <div style="display: flex; gap: 8px;"><span>BANK :</span> <span style="color: #111827;">${bill.bank_name}</span></div>
-                  <div style="display: flex; gap: 8px;"><span>IFSC CODE NO. :</span> <span style="color: #111827;">${bill.bank_ifsc}</span></div>
-                  <div style="display: flex; gap: 8px;"><span>S. B. No. :</span> <span style="color: #111827;">${bill.bank_account}</span></div>
+                <div class="bank-title" style="font-size: 11px; font-weight: bold; color: #dc2626; margin-bottom: 4px;">BANK DETAILS:</div>
+                <div class="bank-grid" style="font-size: 10px; font-weight: bold; color: #1f2937; text-transform: uppercase;">
+                  <div style="display: flex; gap: 8px;"><span>BANK :</span> <span style="color: #000;">${bill.bank_name}</span></div>
+                  <div style="display: flex; gap: 8px;"><span>IFSC CODE :</span> <span style="color: #000;">${bill.bank_ifsc}</span></div>
+                  <div style="display: flex; gap: 8px;"><span>ACCOUNT NO. :</span> <span style="color: #000;">${bill.bank_account}</span></div>
                 </div>
               ` : ''}
             </div>
-            <div class="signatory-box">
-              <div class="signatory-title">For M S TRADING COMPANY</div>
-              <div class="signatory-line">Auth. Signatory</div>
+            <div class="signatory-box" style="text-align: right;">
+              <div class="signatory-title" style="font-size: 11px; font-weight: bold; color: #dc2626; margin-bottom: 30px; text-transform: uppercase;">For M S TRADING COMPANY</div>
+              <div class="signatory-line" style="font-size: 10px; font-weight: 500; width: 160px; border-top: 1px solid #9ca3af; text-align: center; padding-top: 4px; color: #4b5563;">Auth. Signatory</div>
             </div>
           </div>
         </div>
