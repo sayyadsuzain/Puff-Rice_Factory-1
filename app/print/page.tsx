@@ -1,9 +1,9 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
-export default function PrintPage() {
+function PrintContent() {
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
   const token = searchParams.get('token')
@@ -12,7 +12,7 @@ export default function PrintPage() {
 
   useEffect(() => {
     if (id) {
-      setPdfUrl(`/api/bill-pdf?id=${id}${token ? `&token=${token}` : ''}&v=6`)
+      setPdfUrl(`/api/bill-pdf?id=${id}${token ? `&token=${token}` : ''}&v=7`)
     }
   }, [id, token])
 
@@ -26,5 +26,13 @@ export default function PrintPage() {
         title="MS Trading - Bill PDF"
       />
     </div>
+  )
+}
+
+export default function PrintPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Viewer...</div>}>
+      <PrintContent />
+    </Suspense>
   )
 }
