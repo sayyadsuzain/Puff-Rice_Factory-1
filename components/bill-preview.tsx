@@ -30,6 +30,302 @@ interface BillPreviewProps {
 const BILL_W = 794
 const BILL_H = 1122
 
+// EXACT CSS FROM lib/pdf/bill-styles.ts (Adapted for React style tags)
+const BILL_CSS = `
+  .a4-page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    background-color: white;
+    padding: 8mm 12mm;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    color: black;
+  }
+
+  .watermark-ms {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    opacity: 0.12;
+    font-size: 300px;
+    font-weight: 900;
+    letter-spacing: 20px;
+    font-family: "Playfair Display", serif;
+    color: #c0c0c0;
+  }
+
+  .content-wrapper {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    height: 100%;
+    width: 100%;
+    gap: 0;
+  }
+
+  .header-top {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+  
+  .jurisdiction {
+    text-align: center;
+    font-size: 8px;
+    color: #6b7280;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
+
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+  }
+
+  .memo-badge {
+    display: inline-block;
+    background-color: #dc2626;
+    color: white;
+    padding: 2px 20px;
+    border-radius: 1px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .contact-info {
+    text-align: right;
+    font-size: 8px;
+    font-weight: bold;
+    color: #1f2937;
+  }
+
+  .company-name {
+    text-align: center;
+    font-size: 34px;
+    font-weight: bold;
+    color: #dc2626;
+    letter-spacing: -0.02em;
+    margin: 0;
+    font-family: "Playfair Display", serif;
+  }
+
+  .company-address {
+    text-align: center;
+    font-size: 8.5px;
+    letter-spacing: 0.05em;
+    color: #374151;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .company-gst {
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+    margin-top: 1px;
+    color: #111827;
+    text-transform: uppercase;
+  }
+
+  .red-divider-main {
+    border-bottom: 2.5px solid #dc2626;
+    margin-top: 4px;
+  }
+  .red-divider-sub {
+    border-bottom: 0.5px solid #dc2626;
+    margin-top: 1px;
+  }
+
+  .bill-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    font-size: 11px;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .info-label {
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+
+  .bill-no {
+    font-size: 16px;
+    font-weight: 900;
+    color: #dc2626;
+    font-style: italic;
+  }
+
+  .party-details {
+    border: 0.5px solid #d1d5db;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+
+  .party-name-row {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .party-name-underline {
+    border-bottom: 0.5px dotted #9ca3af;
+    min-width: 250px;
+    display: inline-block;
+  }
+
+  .vehicle-gst-row {
+    font-size: 11px;
+    margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+
+  .items-table {
+    width: 100%;
+    font-size: 11px;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .items-table thead tr {
+    background-color: #f9fafb;
+    border-top: 0.5px solid #9ca3af;
+    border-bottom: 0.5px solid #9ca3af;
+    height: 28px;
+  }
+
+  .items-table th {
+    border-left: 0.5px solid #9ca3af;
+    border-right: 0.5px solid #9ca3af;
+    padding: 2px 6px;
+    text-align: left;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+
+  .items-table td {
+    border-left: 0.5px solid #9ca3af;
+    border-right: 0.5px solid #9ca3af;
+    padding: 3px 6px;
+    vertical-align: top;
+  }
+
+  .item-row {
+    height: 24px;
+  }
+
+  .spacer-row {
+    height: 100%;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .totals-section {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  .grand-total-section {
+    border-top: 1.5px solid black;
+    padding-top: 4px;
+    margin-top: 2px;
+  }
+
+  .grand-total-label {
+    font-size: 16px;
+    font-weight: 900;
+    font-style: italic;
+  }
+
+  .grand-total-value {
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .signature-area {
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+  }
+
+  .bank-info {
+    font-size: 9px;
+    text-align: left;
+    width: 55%;
+  }
+
+  .bank-title {
+    font-weight: bold;
+    color: #dc2626;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    font-size: 8px;
+  }
+
+  .bank-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 8px;
+    color: #1f2937;
+  }
+
+  .signatory-title {
+    font-size: 9px;
+    font-weight: bold;
+    color: #dc2626;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .signatory-line {
+    font-size: 8px;
+    font-weight: 500;
+    width: 140px;
+    margin-left: auto;
+    text-align: center;
+    border-top: 0.5px solid #9ca3af;
+    padding-top: 2px;
+    color: #4b5563;
+  }
+`;
+
 export default function BillPreview({
   billType,
   billNumber,
@@ -67,7 +363,6 @@ export default function BillPreview({
       setScale(s)
     }
 
-    // Initial calculation after DOM renders
     const timer = setTimeout(calculate, 50)
     const observer = new ResizeObserver(calculate)
     if (outerRef.current) observer.observe(outerRef.current)
@@ -77,8 +372,6 @@ export default function BillPreview({
     }
   }, [])
 
-  // The wrapper div is sized to exactly the scaled bill dimensions
-  // The bill is absolutely positioned inside and scaled from top-left
   const scaledW = Math.round(BILL_W * scale)
   const scaledH = Math.round(BILL_H * scale)
 
@@ -98,9 +391,10 @@ export default function BillPreview({
         padding: '8px',
       }}
     >
-      {/* Sized to scaled dimensions so no layout overflow */}
+      <style>{BILL_CSS}</style>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
+      
       <div style={{ width: scaledW, height: scaledH, position: 'relative', flexShrink: 0 }}>
-        {/* Bill at natural size, scaled from top-left corner */}
         <div
           style={{
             position: 'absolute',
@@ -112,183 +406,186 @@ export default function BillPreview({
             transform: `scale(${scale})`,
           }}
         >
-          <Card
-            className="p-8 bg-white text-black relative shadow-2xl border-none"
-            style={{ fontFamily: 'Arial, sans-serif', width: BILL_W, height: BILL_H, margin: 0, overflow: 'hidden' }}
-          >
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet" />
-
-            {/* Watermark — Ultra-subtle premium branding */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0"
-              style={{ 
-                fontSize: '480px', 
-                fontWeight: 900, 
-                fontFamily: '"Inter", sans-serif', 
-                color: '#000',
-                opacity: 0.008,
-                textAlign: 'center',
-                lineHeight: 1,
-                letterSpacing: '-0.02em'
-              }}
-            >
-              MS
-            </div>
-
-            <div className="relative z-10 flex flex-col h-full">
-              {/* Header */}
-              <div className="mb-4">
-                <div className="grid grid-cols-3 items-start">
-                  <div className="text-[10px]"></div>
-                  <div className="text-center">
-                    <div className="inline-block bg-red-600 text-white px-6 py-1 rounded-md text-[11px] font-[900] tracking-widest uppercase shadow-sm">
-                      CASH / CREDIT MEMO
-                    </div>
+          <div className="a4-page shadow-2xl relative">
+            <div className="watermark-ms">MS</div>
+            
+            <div className="content-wrapper">
+              <div className="header-top">
+                <div className="jurisdiction">{!isKacchi ? 'Subject to Sangli Jurisdiction' : ''}</div>
+                <div className="header-grid">
+                  <div></div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div className="memo-badge">{isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}</div>
                   </div>
-                  <div className="text-right pr-2">
-                    <div className="uppercase tracking-widest text-[8px] text-gray-400 font-bold mb-0.5">Contact:</div>
-                    <div className="font-sans text-[11px] font-black text-gray-800 leading-tight">9860022450</div>
-                    <div className="font-sans text-[11px] font-black text-gray-800 leading-tight">9561420666</div>
-                  </div>
-                </div>
-
-                <h1 className="text-center text-[74px] font-[900] text-red-600 tracking-[-0.04em] leading-[0.9] mt-3 uppercase font-sans">
-                  {COMPANY_INFO.name}
-                </h1>
-                <div className="text-center text-[9px] tracking-[0.25em] text-gray-500 font-bold uppercase font-sans mt-2">
-                  {COMPANY_INFO.address}
-                </div>
-                
-                <div className="border-b-[4px] border-red-600 mt-4 h-1"></div>
-              </div>
-
-              {/* Meta Row — Compact unified row */}
-              <div className="border-x border-t border-gray-400 mt-1">
-                <div className="grid grid-cols-[1fr_220px_180px] border-b border-gray-400 h-10">
-                  <div className="px-3 border-r border-gray-400 flex items-center gap-2">
-                    <span className="text-[9px] font-black text-gray-400 uppercase">FROM :</span>
-                    <span className="text-[14px] font-black uppercase text-gray-800 tracking-tight">{COMPANY_INFO.name}</span>
-                  </div>
-                  <div className="px-3 border-r border-gray-400 flex items-center gap-3">
-                    <span className="text-[9px] font-black text-gray-400 uppercase">NO.</span>
-                    <span className="text-[22px] font-[950] text-red-600 italic tracking-tighter leading-none">{billNumber || '---'}</span>
-                  </div>
-                  <div className="px-3 flex items-center gap-2">
-                    <span className="text-[9px] font-black text-gray-400 uppercase">DATE :</span>
-                    <span className="text-[17px] font-[900] italic text-gray-800">{billDate ? formatDate(billDate) : '19/3/2026'}</span>
+                  <div className="contact-info">
+                    <div style={{ textTransform: 'uppercase' }}>Contact:</div>
+                    <div>9860022450</div>
+                    <div>9561420666</div>
                   </div>
                 </div>
                 
-                <div className="p-4 bg-white flex flex-col gap-3 border-b border-gray-400">
-                  <div className="flex items-baseline">
-                    <span className="text-[17px] font-black mr-2 text-gray-800">M/s.</span>
-                    <div className="flex-1 border-b border-dotted border-gray-300 relative">
-                      <span className="text-[19px] font-bold text-gray-900 absolute -bottom-0.5 left-0">
-                        {partyName || 'Suzain Sayyad'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-[10px] text-gray-400 mr-2 font-black uppercase tracking-wider">Vehicle No.:</span>
-                    <span className="text-[15px] font-[900] text-gray-900">{vehicleNumber || 'MH10BR9001'}</span>
-                  </div>
+                <h1 className="company-name">M S TRADING COMPANY</h1>
+                <div className="company-address">KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52</div>
+                {!isKacchi && <div className="company-gst">GST IN : {COMPANY_INFO.gst}</div>}
+                
+                <div className="red-divider-main"></div>
+                <div className="red-divider-sub"></div>
+              </div>
+
+              <div className="bill-info-grid">
+                <div>
+                  <div className="info-label">From :</div>
+                  <div style={{ fontWeight: 'bold' }}>M S TRADING COMPANY</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="info-label">No.</div>
+                  <div className="bill-no">{billNumber || '---'}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="info-label">Date :</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{billDate ? formatDate(billDate) : '19/3/2026'}</div>
                 </div>
               </div>
 
-              {/* Table Section */}
-              <div className="flex-1 flex flex-col">
-                <table className="w-full text-sm border-collapse border-l border-r border-gray-400">
+              <div className="party-details">
+                <div className="party-name-row">
+                  <span style={{ fontWeight: 'bold' }}>M/s. </span>
+                  <span className="party-name-underline">{partyName || '_'.repeat(40)}</span>
+                </div>
+                {(vehicleNumber || (!isKacchi && partyGst)) ? (
+                  <div className="vehicle-gst-row">
+                    {vehicleNumber ? (
+                      <div>
+                        <span style={{ color: '#4b5563' }}>Vehicle No.: </span>
+                        <span>{vehicleNumber}</span>
+                      </div>
+                    ) : <div></div>}
+                    {!isKacchi && partyGst ? (
+                      <div>
+                        <span style={{ color: '#4b5563' }}>GST No.: </span>
+                        <span>{partyGst}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="items-table-container">
+                <table className="items-table">
                   <thead>
-                    <tr className="bg-gray-50/30 border-b border-gray-400 h-10">
-                      <th className="border-r border-gray-400 px-3 text-left font-black uppercase text-[10px] text-gray-700 w-[42%]">PARTICULARS</th>
-                      <th className="border-r border-gray-400 px-2 text-center font-black uppercase text-[10px] text-gray-700 w-[14%]">QTY. BAGS</th>
-                      <th className="border-r border-gray-400 px-2 text-center font-black uppercase text-[10px] text-gray-700 w-[18%]">WEIGHT IN KG.</th>
-                      <th className="border-r border-gray-400 px-2 text-center font-black uppercase text-[10px] text-gray-700 w-[12%]">RATE</th>
-                      <th className="px-3 text-right font-black uppercase text-[10px] text-gray-700 w-[14%]">AMOUNT</th>
+                    <tr>
+                      <th style={{ width: 'auto' }}>Particulars</th>
+                      <th style={{ width: '96px', textAlign: 'center' }}>Qty. Bags</th>
+                      <th style={{ width: '112px', textAlign: 'center' }}>Weight in Kg.</th>
+                      <th style={{ width: '96px', textAlign: 'center' }}>Rate</th>
+                      <th style={{ width: '128px', textAlign: 'right' }}>Amount</th>
                     </tr>
                   </thead>
                   <tbody>
                     {items.map((item, idx) => (
-                      <tr key={idx} className="h-9 hover:bg-gray-50/20">
-                        <td className="border-r border-gray-400 px-4 py-1.5 font-bold text-gray-800 uppercase text-[14px]">
-                          {item.particular || ''}
-                        </td>
-                        <td className="border-r border-gray-400 px-2 py-1.5 text-center font-black text-[14px] text-gray-700">{item.qty_bags || ''}</td>
-                        <td className="border-r border-gray-400 px-2 py-1.5 text-center font-black text-[14px] text-gray-700">{item.weight_kg || ''}</td>
-                        <td className="border-r border-gray-400 px-2 py-1.5 text-center font-black text-[14px] text-gray-700">{item.rate?.toFixed(2) || ''}</td>
-                        <td className="px-4 py-1.5 text-right font-black text-[15px] text-gray-900">{item.amount?.toFixed(2) || ''}</td>
+                      <tr key={idx} className="item-row">
+                        <td>{item.particular}</td>
+                        <td style={{ textAlign: 'center' }}>{item.qty_bags || ''}</td>
+                        <td style={{ textAlign: 'center' }}>{item.weight_kg || ''}</td>
+                        <td style={{ textAlign: 'center' }}>{item.rate ? item.rate.toFixed(2) : ''}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{item.amount?.toFixed(2) || ''}</td>
                       </tr>
                     ))}
                     {Array.from({ length: Math.max(0, 16 - items.length) }).map((_, idx) => (
-                      <tr key={`empty-${idx}`} className="h-9">
-                        <td className="border-r border-gray-400 p-1"></td>
-                        <td className="border-r border-gray-400 p-1"></td>
-                        <td className="border-r border-gray-400 p-1"></td>
-                        <td className="border-r border-gray-400 p-1"></td>
-                        <td className="p-1"></td>
+                      <tr key={`empty-${idx}`} className="h-24">
+                        <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                        <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                        <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                        <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                        <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
                       </tr>
                     ))}
+                    <tr className="spacer-row">
+                      <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                    </tr>
                   </tbody>
                 </table>
+              </div>
 
-                {/* Summary Totals — Integrated look, no 'box' */}
-                <div className="grid grid-cols-[1.3fr_1fr] border-l border-r border-b border-gray-400">
-                  <div className="p-4 flex flex-col justify-end">
-                    <div className="font-black text-[9px] uppercase text-gray-400 mb-1">RS. IN WORDS:</div>
-                    <div className="text-[13px] font-bold leading-tight uppercase text-gray-800 tracking-tight">
-                      {grandTotal > 0 ? `${totalAmountWords} Only.` : 'Zero Rupees Only.'}
-                    </div>
-                  </div>
-                  
-                  <div className="border-l border-gray-400 flex flex-col">
-                    <div className="flex justify-between items-center px-5 py-2 border-b border-gray-200 text-[11px] font-black">
-                      <span className="text-gray-400 uppercase tracking-wider">SUB TOTAL</span>
-                      <span className="text-[14px] font-black text-gray-800">{itemsTotal.toFixed(2)}</span>
-                    </div>
-                    
-                    {balance != null && (
-                      <div className="flex justify-between items-center px-5 py-2 border-b border-gray-300 text-[11px] font-black italic">
-                        <span className="text-red-500 uppercase tracking-wider">BALANCE</span>
-                        <span className="text-[14px] text-red-500 font-black">{balance.toFixed(2)}</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center px-5 py-5">
-                      <span className="text-[26px] font-black italic tracking-tight text-gray-900">TOTAL</span>
-                      <div className="text-right">
-                        <span className="text-[34px] font-[950] text-gray-900 tracking-tighter">
-                          {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                        <div className="h-[6px] bg-black mt-1 rounded-sm w-full"></div>
+              <div className="form-footer">
+                <div className="footer-grid">
+                  <div className="words-section">
+                    <div>
+                      <div style={{ fontWeight: 'bold', fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
+                      <div style={{ fontSize: '11px', fontWeight: 'bold', lineHeight: 1.25, borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        {totalAmountWords || 'Zero Rupees Only.'}
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Footer Section */}
-              <div className="mt-8 flex flex-col items-end pr-8 pb-8">
-                <div className="text-[16px] font-[900] text-red-600 mb-20 uppercase tracking-[0.1em]">
-                  FOR {COMPANY_INFO.name}
-                </div>
-                <div className="w-56 border-t border-gray-400 pt-1.5 text-center">
-                  <span className="font-black text-[10px] uppercase text-gray-500 tracking-widest">Auth. Signatory</span>
-                </div>
-              </div>
-
-              {/* Bank Details — Subtle Integrated Text (Bottom Left) */}
-              {showBankDetails && bankName && bankAccount && (
-                <div className="absolute bottom-10 left-10 text-[10px] max-w-[280px] pointer-events-none">
-                  <div className="font-black text-red-600 mb-2 uppercase tracking-[0.2em] text-[8px] border-b border-gray-200 pb-1">Bank Information</div>
-                  <div className="space-y-1 font-bold text-gray-500">
-                    <div className="flex justify-between gap-4"><span className="uppercase text-[8px] text-gray-400">Bank:</span><span className="text-gray-700">{bankName}</span></div>
-                    {bankIFSC && <div className="flex justify-between gap-4"><span className="uppercase text-[8px] text-gray-400">IFSC:</span><span className="text-gray-700">{bankIFSC}</span></div>}
-                    <div className="flex justify-between gap-4"><span className="uppercase text-[8px] text-gray-400">Account:</span><span className="text-gray-700">{bankAccount}</span></div>
+        
+                  <div className="totals-section">
+                    <div className="total-row">
+                      <span style={{ fontWeight: 'bold', color: '#4b5563' }}>SUB TOTAL</span>
+                      <span style={{ fontWeight: 'bold' }}>₹ {itemsTotal.toFixed(2)}</span>
+                    </div>
+        
+                    {gstEnabled && gstTotal > 0 ? (
+                      <div style={{ marginTop: '4px', borderTop: '0.5px solid #f3f4f6', paddingTop: '4px' }}>
+                        {cgstPercent > 0 && (
+                          <div className="total-row">
+                            <span style={{ color: '#4b5563' }}>CGST @ {cgstPercent}%</span>
+                            <span style={{ fontWeight: 'bold', color: 'black' }}>₹ {(itemsTotal * cgstPercent / 100).toFixed(2)}</span>
+                          </div>
+                        )}
+                        {igstPercent > 0 && (
+                          <div className="total-row">
+                            <span style={{ color: '#4b5563' }}>IGST @ {igstPercent}%</span>
+                            <span style={{ fontWeight: 'bold', color: 'black' }}>₹ {(itemsTotal * igstPercent / 100).toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="total-row" style={{ fontWeight: 'bold', paddingTop: '4px', borderTop: '0.5px solid #f3f4f6', marginTop: '2px' }}>
+                          <span style={{ color: '#4b5563' }}>GST Total:</span>
+                          <span>₹ {gstTotal.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ) : null}
+        
+                    {balance && balance > 0 ? (
+                      <div className="total-row" style={{ marginTop: '4px' }}>
+                        <span style={{ fontWeight: 'bold', color: '#4b5563', textTransform: 'uppercase' }}>BALANCE</span>
+                        <span style={{ fontWeight: 'bold', color: '#ea580c' }}>₹ {balance.toFixed(2)}</span>
+                      </div>
+                    ) : null}
+        
+                    <div className="grand-total-section">
+                      <div className="grand-total-row">
+                        <span className="grand-total-label">TOTAL</span>
+                        <span className="grand-total-value">₹ {grandTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
+      
+                <div className="signature-area">
+                  <div className="bank-info">
+                    {(showBankDetails && bankName) ? (
+                      <>
+                        <div className="bank-title">BANK DETAILS:</div>
+                        <div className="bank-grid">
+                          <div style={{ display: 'flex', gap: '8px' }}><span>BANK :</span> <span style={{ color: '#000' }}>{bankName}</span></div>
+                          <div style={{ display: 'flex', gap: '8px' }}><span>IFSC CODE :</span> <span style={{ color: '#000' }}>{bankIFSC}</span></div>
+                          <div style={{ display: 'flex', gap: '8px' }}><span>ACCOUNT NO. :</span> <span style={{ color: '#000' }}>{bankAccount}</span></div>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div className="signatory-title">For M S TRADING COMPANY</div>
+                    <div className="signatory-line">Auth. Signatory</div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

@@ -1,8 +1,10 @@
-import { Bill, BillItem, COMPANY_INFO, formatDate, supabase } from '@/lib/supabase'
-import { numberToWords } from '@/lib/supabase'
+'use client'
+
+import { Bill, BillItem, COMPANY_INFO, formatDate, supabase, numberToWords } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Printer } from 'lucide-react'
 import { toast } from 'sonner'
+import { useEffect, useState } from 'react'
 
 interface BillDisplayProps {
   bill: Bill
@@ -11,320 +13,563 @@ interface BillDisplayProps {
   partyGst?: string
 }
 
+const BILL_W = 794
+const BILL_H = 1122
+
+// EXACT CSS FROM lib/pdf/bill-styles.ts
+const BILL_CSS = `
+  .a4-page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    background-color: white;
+    padding: 8mm 12mm;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    color: black;
+  }
+
+  .watermark-ms {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    opacity: 0.12;
+    font-size: 300px;
+    font-weight: 900;
+    letter-spacing: 20px;
+    font-family: "Playfair Display", serif;
+    color: #c0c0c0;
+  }
+
+  .content-wrapper {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    height: 100%;
+    width: 100%;
+    gap: 0;
+  }
+
+  .header-top {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+  
+  .jurisdiction {
+    text-align: center;
+    font-size: 8px;
+    color: #6b7280;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
+
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+  }
+
+  .memo-badge {
+    display: inline-block;
+    background-color: #dc2626;
+    color: white;
+    padding: 2px 20px;
+    border-radius: 1px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .contact-info {
+    text-align: right;
+    font-size: 8px;
+    font-weight: bold;
+    color: #1f2937;
+  }
+
+  .company-name {
+    text-align: center;
+    font-size: 34px;
+    font-weight: bold;
+    color: #dc2626;
+    letter-spacing: -0.02em;
+    margin: 0;
+    font-family: "Playfair Display", serif;
+  }
+
+  .company-address {
+    text-align: center;
+    font-size: 8.5px;
+    letter-spacing: 0.05em;
+    color: #374151;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .company-gst {
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+    margin-top: 1px;
+    color: #111827;
+    text-transform: uppercase;
+  }
+
+  .red-divider-main {
+    border-bottom: 2.5px solid #dc2626;
+    margin-top: 4px;
+  }
+  .red-divider-sub {
+    border-bottom: 0.5px solid #dc2626;
+    margin-top: 1px;
+  }
+
+  .bill-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    font-size: 11px;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .info-label {
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+
+  .bill-no {
+    font-size: 16px;
+    font-weight: 900;
+    color: #dc2626;
+    font-style: italic;
+  }
+
+  .party-details {
+    border: 0.5px solid #d1d5db;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+
+  .party-name-row {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .party-name-underline {
+    border-bottom: 0.5px dotted #9ca3af;
+    min-width: 250px;
+    display: inline-block;
+  }
+
+  .vehicle-gst-row {
+    font-size: 11px;
+    margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+
+  .items-table {
+    width: 100%;
+    font-size: 11px;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .items-table thead tr {
+    background-color: #f9fafb;
+    border-top: 0.5px solid #9ca3af;
+    border-bottom: 0.5px solid #9ca3af;
+    height: 28px;
+  }
+
+  .items-table th {
+    border-left: 0.5px solid #9ca3af;
+    border-right: 0.5px solid #9ca3af;
+    padding: 2px 6px;
+    text-align: left;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+
+  .items-table td {
+    border-left: 0.5px solid #9ca3af;
+    border-right: 0.5px solid #9ca3af;
+    padding: 3px 6px;
+    vertical-align: top;
+  }
+
+  .item-row {
+    height: 24px;
+  }
+
+  .spacer-row {
+    height: 100%;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .totals-section {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  .grand-total-section {
+    border-top: 1.5px solid black;
+    padding-top: 4px;
+    margin-top: 2px;
+  }
+
+  .grand-total-label {
+    font-size: 16px;
+    font-weight: 900;
+    font-style: italic;
+  }
+
+  .grand-total-value {
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .signature-area {
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+  }
+
+  .bank-info {
+    font-size: 9px;
+    text-align: left;
+    width: 55%;
+  }
+
+  .bank-title {
+    font-weight: bold;
+    color: #dc2626;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    font-size: 8px;
+  }
+
+  .bank-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 8px;
+    color: #1f2937;
+  }
+
+  .signatory-title {
+    font-size: 9px;
+    font-weight: bold;
+    color: #dc2626;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .signatory-line {
+    font-size: 8px;
+    font-weight: 500;
+    width: 140px;
+    margin-left: auto;
+    text-align: center;
+    border-top: 0.5px solid #9ca3af;
+    padding-top: 2px;
+    color: #4b5563;
+  }
+`;
+
 export default function BillDisplay({ bill, items, partyName, partyGst }: BillDisplayProps) {
   const isKacchi = bill.bill_type === 'kacchi'
-
-  // Calculate the final grand total
   const grandTotal = (bill.total_amount || 0) + (bill.gst_total || 0) + (bill.balance || 0)
-
-  // Calculate total in words for the grand total
   const totalInWords = numberToWords(grandTotal)
+  
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    const calculateScale = () => {
+      const width = window.innerWidth
+      if (width < 794) {
+        setScale((width - 32) / 794)
+      } else {
+        setScale(1)
+      }
+    }
+    calculateScale()
+    window.addEventListener('resize', calculateScale)
+    return () => window.removeEventListener('resize', calculateScale)
+  }, [])
 
   const handlePrint = async () => {
     try {
-      console.log('🎨 BILL-PDF: Generating PDF for bill ID:', bill.id)
       toast.loading('Opening PDF preview...', { id: 'print' })
-
-      // Get current session for authentication
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
-
-      // Construct URL with auth token for window.open (restores original functionality)
       const pdfUrl = `/api/bill-pdf?id=${bill.id}${token ? `&token=${token}` : ''}`
-      
       window.open(pdfUrl, '_blank')
       toast.success('PDF preview opened!', { id: 'print' })
     } catch (error) {
-      console.error('❌ BILL-PDF: Error generating PDF:', error)
       toast.error('Error generating PDF', { id: 'print' })
     }
   }
 
+  // Format Bill No
+  const billNum = String(bill.bill_number || '')
+  let formattedBillNo = billNum
+  if (billNum) {
+    if (billNum.startsWith('P') || billNum.startsWith('K')) {
+      const parts = billNum.split('/')
+      if (parts.length > 1) {
+        const numPart = parts[parts.length - 1]
+        formattedBillNo = billNum.substring(0, billNum.length - numPart.length) + numPart.padStart(3, '0')
+      } else {
+        const numPart = billNum.substring(1)
+        formattedBillNo = billNum.charAt(0) + numPart.padStart(3, '0')
+      }
+    } else {
+      const prefix = isKacchi ? 'K' : 'P'
+      formattedBillNo = `${prefix}${billNum.padStart(3, '0')}`
+    }
+  }
+
   return (
-    <div className="w-full overflow-x-auto pb-8 flex justify-center bg-gray-50/50 rounded-xl p-2 md:p-4">
-      <div
-        className="a4-container bill-display relative shadow-xl print:shadow-none"
-        style={{
-          width: '100%',
-          maxWidth: '800px', // Roughly A4 but fits well on desktop grids
-          minHeight: 'auto',
-          aspectRatio: '1 / 1.414', // A4 Aspect Ratio
-          margin: '0 auto',
-          backgroundColor: 'white',
-          padding: 'clamp(12px, 4vw, 40px)', // Responsive padding
-          fontFamily: 'Arial, sans-serif'
+    <div className="w-full flex flex-col items-center bg-gray-50/50 py-8">
+      <style>{BILL_CSS}</style>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
+
+      {/* Action Buttons */}
+      <div className="mb-6 flex gap-4 no-print">
+        <Button onClick={handlePrint} variant="default" className="bg-red-600 hover:bg-red-700">
+          <Printer className="h-4 w-4 mr-2" />
+          Print / Download PDF
+        </Button>
+      </div>
+
+      {/* Shared PDF-fidelity Layout */}
+      <div 
+        style={{ 
+          width: BILL_W, 
+          height: BILL_H, 
+          transform: `scale(${scale})`, 
+          transformOrigin: 'top center',
+          marginBottom: `calc(${BILL_H}px * (${scale} - 1))`
         }}
+        className="shadow-2xl overflow-hidden"
       >
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
-
-        {/* Watermark - Scaled for mobile */}
-        <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.06] text-[40vw] sm:text-[320px]"
-          style={{ fontWeight: 900, letterSpacing: '25px', fontFamily: '"Playfair Display", serif', color: '#c0c0c0' }}>
-          MS
-        </div>
-
-        <div className="relative z-10 flex flex-col h-full">
-          {/* Print Button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }} className="no-print">
-            <Button onClick={handlePrint} variant="outline" size="sm" className="h-8 text-xs">
-              <Printer className="h-3.5 w-3.5 mr-2" />
-              Print PDF
-            </Button>
-          </div>
-
-          {/* Header Section */}
-          <div className="w-full mb-2">
-            <div className="text-center text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-tight mb-1">
-              {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
-            </div>
-            <div className="grid grid-cols-3 items-start mb-2">
-              <div className="text-[10px]"></div>
-              <div className="text-center">
-                <div className="inline-block bg-red-600 text-white px-3 sm:px-8 py-0.5 sm:py-1 rounded-sm text-[8px] sm:text-[11px] font-black tracking-widest shadow-sm uppercase whitespace-nowrap">
-                  {isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}
+        <div className="a4-page relative">
+          <div className="watermark-ms">MS</div>
+          
+          <div className="content-wrapper">
+            <div className="header-top">
+              <div className="jurisdiction">{!isKacchi ? 'Subject to Sangli Jurisdiction' : ''}</div>
+              <div className="header-grid">
+                <div></div>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="memo-badge">{isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}</div>
+                </div>
+                <div className="contact-info">
+                  <div style={{ textTransform: 'uppercase' }}>Contact:</div>
+                  <div>9860022450</div>
+                  <div>9561420666</div>
                 </div>
               </div>
-              <div className="text-right text-[8px] sm:text-[10px] space-y-0.5 font-bold text-gray-800">
-                <div className="uppercase">Contact:</div>
-                <div>9860022450</div>
-                <div>9561420666</div>
+              
+              <h1 className="company-name">M S TRADING COMPANY</h1>
+              <div className="company-address">KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52</div>
+              {!isKacchi && <div className="company-gst">GST IN : {COMPANY_INFO.gst}</div>}
+              
+              <div className="red-divider-main"></div>
+              <div className="red-divider-sub"></div>
+            </div>
+
+            <div className="bill-info-grid">
+              <div>
+                <div className="info-label">From :</div>
+                <div style={{ fontWeight: 'bold' }}>M S TRADING COMPANY</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="info-label">No.</div>
+                <div className="bill-no">{formattedBillNo || '---'}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div className="info-label">Date :</div>
+                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{formatDate(bill.bill_date)}</div>
               </div>
             </div>
 
-            <h1 className="text-center text-2xl sm:text-5xl font-bold text-red-600 tracking-tight mb-1 mt-1 leading-tight" style={{ textShadow: '0.5px 0.5px 0px rgba(0,0,0,0.05)' }}>
-              M S TRADING COMPANY
-            </h1>
-            <div className="text-center text-[7px] sm:text-[10px] tracking-widest text-gray-700 font-bold uppercase line-clamp-1 sm:line-clamp-none">
-              KUPWAD MIDC NEAR NAV KRISHNA VALLEY, PLOT NO L-52
-            </div>
-            {!isKacchi && (
-              <p className="text-center text-[9px] sm:text-[11px] font-bold mt-1 text-gray-800 tracking-widest uppercase">GST IN : {COMPANY_INFO.gst}</p>
-            )}
-
-
-          {/* Double Red Header Lines */}
-          <div className="border-b-[4px] border-red-600 mt-2"></div>
-          <div className="border-b-[1px] border-red-600 mt-[2px]"></div>
-        </div>
-
-        {/* Bill Info Grid */}
-        <div className="grid grid-cols-3 gap-4 text-sm items-center py-2 mb-4">
-          <div>
-            <div className="font-bold text-xs uppercase text-gray-500">From :</div>
-            <div className="font-bold">M S TRADING COMPANY</div>
-          </div>
-          <div className="text-center">
-            <div className="font-bold text-xs uppercase text-gray-500">No.</div>
-            <div className="text-xl font-black text-red-600">
-              {(() => {
-                const billNum = String(bill.bill_number)
-                if (billNum.startsWith('P') || billNum.startsWith('K')) {
-                  const numPart = billNum.substring(1)
-                  return billNum.charAt(0) + numPart.padStart(3, '0')
-                } else {
-                  const prefix = bill.bill_type === 'kacchi' ? 'K' : 'P'
-                  return `${prefix}${billNum.padStart(3, '0')}`
-                }
-              })()}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="font-bold text-xs uppercase text-gray-500">Date :</div>
-            <div className="font-bold text-base">{formatDate(bill.bill_date)}</div>
-          </div>
-        </div>
-
-        {/* Party Details */}
-        <div className="border border-gray-300 rounded-md p-3 mb-6 relative">
-          <div className="text-base font-medium">
-            <span className="font-bold">M/s. </span>
-            <span className="border-b border-dotted border-gray-400 min-w-[300px] inline-block">{partyName || '_'.repeat(40)}</span>
-          </div>
-
-          {(bill.vehicle_number || (!isKacchi && partyGst)) && (
-            <div className="text-sm mt-2 flex justify-between font-semibold">
-              {bill.vehicle_number && (
-                <div>
-                  <span className="font-bold text-gray-600">Vehicle No.: </span>
-                  <span>{bill.vehicle_number}</span>
+            <div className="party-details">
+              <div className="party-name-row">
+                <span style={{ fontWeight: 'bold' }}>M/s. </span>
+                <span className="party-name-underline">{partyName || '_'.repeat(40)}</span>
+              </div>
+              {(bill.vehicle_number || (!isKacchi && partyGst)) ? (
+                <div className="vehicle-gst-row">
+                  {bill.vehicle_number ? (
+                    <div>
+                      <span style={{ color: '#4b5563' }}>Vehicle No.: </span>
+                      <span>{bill.vehicle_number}</span>
+                    </div>
+                  ) : <div></div>}
+                  {!isKacchi && partyGst ? (
+                    <div>
+                      <span style={{ color: '#4b5563' }}>GST No.: </span>
+                      <span>{partyGst}</span>
+                    </div>
+                  ) : null}
                 </div>
-              )}
-              {!isKacchi && partyGst && (
-                <div className={bill.vehicle_number ? "text-right" : ""}>
-                  <span className="font-bold text-gray-600">GST No.: </span>
-                  <span>{partyGst}</span>
-                </div>
-              )}
+              ) : null}
             </div>
-          )}
-        </div>
 
-        {/* Items Table */}
-        <div className="flex-1 min-h-[450px]">
-          <table className="w-full text-[13px] border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-t border-b border-gray-400">
-                <th className="border-l border-r border-gray-400 p-2 text-left font-black uppercase text-xs tracking-tight">Particulars</th>
-                <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-24">Qty. Bags</th>
-                <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-28">Weight in Kg.</th>
-                <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-24">Rate</th>
-                <th className="border-l border-r border-gray-400 p-2 text-right font-black uppercase text-xs tracking-tight w-32">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="border-b border-gray-400">
-              {items.map((item, idx) => {
-                const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
-                return (
-                  <tr key={idx} className="h-8 border-none">
-                    <td className="border-l border-r border-gray-200 px-2 py-1.5 font-medium">
-                      <div>{item.particular}</div>
-                      {isPaddyItem && item.weight_kg && (
-                        <div className="text-[10px] text-blue-600 font-bold">
-                          ({item.weight_kg}kg total)
+            <div className="items-table-container">
+              <table className="items-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 'auto' }}>Particulars</th>
+                    <th style={{ width: '96px', textAlign: 'center' }}>Qty. Bags</th>
+                    <th style={{ width: '112px', textAlign: 'center' }}>Weight in Kg.</th>
+                    <th style={{ width: '96px', textAlign: 'center' }}>Rate</th>
+                    <th style={{ width: '128px', textAlign: 'right' }}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={idx} className="item-row">
+                      <td>{item.particular}</td>
+                      <td style={{ textAlign: 'center' }}>{item.qty_bags || ''}</td>
+                      <td style={{ textAlign: 'center' }}>{item.weight_kg || ''}</td>
+                      <td style={{ textAlign: 'center' }}>{item.rate ? item.rate.toFixed(2) : ''}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{item.amount?.toFixed(2) || ''}</td>
+                    </tr>
+                  ))}
+                  {Array.from({ length: Math.max(0, 16 - items.length) }).map((_, idx) => (
+                    <tr key={`empty-${idx}`} className="h-24">
+                      <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                      <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
+                    </tr>
+                  ))}
+                  <tr className="spacer-row">
+                    <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                    <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                    <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                    <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                    <td style={{ borderBottom: '0.5px solid #9ca3af' }}></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="form-footer">
+              <div className="footer-grid">
+                <div className="words-section">
+                  <div>
+                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
+                    <div style={{ fontSize: '11px', fontWeight: 'bold', lineHeight: 1.25, borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                      {totalInWords} Only.
+                    </div>
+                  </div>
+                </div>
+      
+                <div className="totals-section">
+                  <div className="total-row">
+                    <span style={{ fontWeight: 'bold', color: '#4b5563' }}>SUB TOTAL</span>
+                    <span style={{ fontWeight: 'bold' }}>₹ {(bill.total_amount || 0).toFixed(2)}</span>
+                  </div>
+      
+                  {!isKacchi && bill.is_gst_enabled && (bill.gst_total || 0) > 0 ? (
+                    <div style={{ marginTop: '4px', borderTop: '0.5px solid #f3f4f6', paddingTop: '4px' }}>
+                      {(bill.cgst_percent || 0) > 0 && (
+                        <div className="total-row">
+                          <span style={{ color: '#4b5563' }}>CGST @ {bill.cgst_percent}%</span>
+                          <span style={{ fontWeight: 'bold', color: 'black' }}>₹ {(bill.cgst_amount || 0).toFixed(2)}</span>
                         </div>
                       )}
-                    </td>
-                    <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">{item.qty_bags || ''}</td>
-                    <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">
-                      {isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}
-                    </td>
-                    <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">
-                      {item.rate ? `${item.rate.toFixed(2)}${isPaddyItem ? ' ₹/kg' : ''}` : ''}
-                    </td>
-                    <td className="border-l border-r border-gray-200 px-2 py-1.5 text-right font-bold">{item.amount?.toFixed(2) || ''}</td>
-                  </tr>
-                )
-              })}
-              {items.length < 18 && Array.from({ length: 18 - items.length }).map((_, idx) => (
-                <tr key={`empty-${idx}`} className="h-8 border-none">
-                  <td className="border-l border-r border-gray-100 p-2 text-gray-100 select-none">-</td>
-                  <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
-                  <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
-                  <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
-                  <td className="border-l border-r border-gray-100 p-2 text-right text-gray-100 select-none">-</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer Section */}
-        <div className="mt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div>
-                <div className="font-bold text-[10px] uppercase text-gray-500 mb-1">Rs. in Words:</div>
-                <div className="text-[11px] font-bold leading-tight border-b border-gray-200 pb-2">
-                  {totalInWords}
-                </div>
-              </div>
-            </div>
-
-            <div className="text-right space-y-1 w-full sm:w-auto mt-2 sm:mt-0">
-              <div className="flex justify-between items-center text-xs sm:text-sm">
-                <span className="font-bold text-gray-600">SUB TOTAL</span>
-                <span className="font-bold">₹ {bill.total_amount.toFixed(2)}</span>
-              </div>
-
-              {!isKacchi && bill.is_gst_enabled && (bill.gst_total || 0) > 0 && (
-                <div className="space-y-1 pt-1 border-t border-gray-100 mt-1">
-                  {(bill.cgst_percent || 0) > 0 && (
-                    <div className="flex justify-between items-center text-[10px] sm:text-xs">
-                      <span className="text-gray-600">CGST @ {bill.cgst_percent}%</span>
-                      <span className="font-bold">₹ {bill.cgst_amount.toFixed(2)}</span>
+                      {(bill.igst_percent || 0) > 0 && (
+                        <div className="total-row">
+                          <span style={{ color: '#4b5563' }}>IGST @ {bill.igst_percent}%</span>
+                          <span style={{ fontWeight: 'bold', color: 'black' }}>₹ {(bill.igst_amount || 0).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="total-row" style={{ fontWeight: 'bold', paddingTop: '4px', borderTop: '0.5px solid #f3f4f6', marginTop: '2px' }}>
+                        <span style={{ color: '#4b5563' }}>GST Total:</span>
+                        <span>₹ {(bill.gst_total || 0).toFixed(2)}</span>
+                      </div>
                     </div>
-                  )}
-                  {(bill.igst_percent || 0) > 0 && (
-                    <div className="flex justify-between items-center text-[10px] sm:text-xs">
-                      <span className="text-gray-600">IGST @ {bill.igst_percent}%</span>
-                      <span className="font-bold">₹ {bill.igst_amount.toFixed(2)}</span>
+                  ) : null}
+      
+                  {bill.balance && bill.balance > 0 ? (
+                    <div className="total-row" style={{ marginTop: '4px' }}>
+                      <span style={{ fontWeight: 'bold', color: '#4b5563', textTransform: 'uppercase' }}>BALANCE</span>
+                      <span style={{ fontWeight: 'bold', color: '#ea580c' }}>₹ {bill.balance.toFixed(2)}</span>
                     </div>
-                  )}
-                  <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold pt-1 border-t border-gray-100">
-                    <span className="text-gray-600">GST Total:</span>
-                    <span>₹ {bill.gst_total.toFixed(2)}</span>
+                  ) : null}
+      
+                  <div className="grand-total-section">
+                    <div className="grand-total-row">
+                      <span className="grand-total-label">TOTAL</span>
+                      <span className="grand-total-value">₹ {grandTotal.toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {bill.balance != null && bill.balance > 0 && (
-                <div className="flex justify-between items-center text-[10px] sm:text-sm pt-1">
-                  <span className="font-bold text-gray-600 uppercase">BALANCE</span>
-                  <span className="font-bold text-orange-600">₹ {bill.balance.toFixed(2)}</span>
-                </div>
-              )}
-
-              <div className="border-t-[2px] sm:border-t-[3px] border-black pt-2 mt-2">
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-sm sm:text-xl font-black italic">TOTAL</span>
-                  <span className="text-base sm:text-2xl font-black">₹ {grandTotal.toFixed(2)}</span>
-                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Auth Signatory Area */}
-          <div className="mt-auto pt-4 sm:pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-end pb-2 gap-4">
-
-            <div className="text-left w-full sm:w-1/2">
-              {/* Bank Details */}
-              {!isKacchi && bill.bank_name && bill.bank_ifsc && bill.bank_account && (
-                <div className="text-[9px] sm:text-[11px]">
-                  <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAILS :</div>
-                  <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[8px] sm:text-[10px] text-gray-800">
-                    <div className="flex gap-2"><span>BANK :</span> <span className="text-gray-900">{bill.bank_name}</span></div>
-                    <div className="flex gap-2"><span>IFSC :</span> <span className="text-gray-900">{bill.bank_ifsc}</span></div>
-                    <div className="flex gap-2"><span>A/C No. :</span> <span className="text-gray-900">{bill.bank_account}</span></div>
-                  </div>
+    
+              <div className="signature-area">
+                <div className="bank-info">
+                  {(!isKacchi && bill.bank_name) ? (
+                    <>
+                      <div className="bank-title">BANK DETAILS:</div>
+                      <div className="bank-grid">
+                        <div style={{ display: 'flex', gap: '8px' }}><span>BANK :</span> <span style={{ color: '#000' }}>{bill.bank_name}</span></div>
+                        <div style={{ display: 'flex', gap: '8px' }}><span>IFSC CODE :</span> <span style={{ color: '#000' }}>{bill.bank_ifsc}</span></div>
+                        <div style={{ display: 'flex', gap: '8px' }}><span>ACCOUNT NO. :</span> <span style={{ color: '#000' }}>{bill.bank_account}</span></div>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
-              )}
-            </div>
-            <div className="text-right w-full sm:w-auto">
-              <div className="text-[9px] sm:text-[11px] font-bold text-red-600 mb-4 sm:mb-8 uppercase tracking-tight">
-                For M S TRADING COMPANY
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-medium w-full sm:w-44 ml-auto text-center border-t border-gray-400 pt-1 text-gray-600">
-                Auth. Signatory
+                <div style={{ textAlign: 'right' }}>
+                  <div className="signatory-title">For M S TRADING COMPANY</div>
+                  <div className="signatory-line">Auth. Signatory</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
-
-      {/* Print Styles */}
-      <style jsx>{`
-        @media print {
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-          }
-
-          .a4-container {
-            width: 210mm;
-            height: 297mm;
-            padding: 18mm;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          table {
-            page-break-inside: avoid;
-          }
-
-          .border {
-            border-width: 1px !important;
-          }
-        }
-      `}</style>
     </div>
   )
 }
