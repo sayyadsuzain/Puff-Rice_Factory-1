@@ -87,7 +87,7 @@ export const BILL_CSS = `
 
   .contact-info {
     text-align: right;
-    font-size: 8px;
+    font-size: 14px;
     font-weight: bold;
     color: #1f2937;
   }
@@ -296,7 +296,7 @@ export const BILL_CSS = `
     color: #dc2626;
     margin-bottom: 2px;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 14px;
   }
 
   .bank-grid {
@@ -305,7 +305,7 @@ export const BILL_CSS = `
     gap: 0px;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 14px;
     color: #1f2937;
   }
 

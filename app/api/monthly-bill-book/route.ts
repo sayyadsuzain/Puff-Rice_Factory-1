@@ -279,7 +279,7 @@ export async function POST(request: NextRequest) {
  
           .contact-info {
             text-align: right;
-            font-size: 8px;
+            font-size: 14px;
             font-weight: bold;
             color: #1f2937;
           }
@@ -488,7 +488,7 @@ export async function POST(request: NextRequest) {
             color: #dc2626;
             margin-bottom: 2px;
             text-transform: uppercase;
-            font-size: 8px;
+            font-size: 14px;
           }
  
           .bank-grid {
@@ -497,7 +497,7 @@ export async function POST(request: NextRequest) {
             gap: 0px;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 8px;
+            font-size: 14px;
             color: #1f2937;
           }
  
@@ -709,8 +709,13 @@ function generateBillHTML(bill: any, items: any[], pageNumber: number, totalPage
             </div>
             <div class="contact-info">
               <div style="text-transform: uppercase;">Contact:</div>
-              <div>9860022450</div>
-              <div>9561420666</div>
+              ${isKacchi ? `
+                <div style="font-weight: 900; color: #dc2626;">PH: 9860022450</div>
+                <div style="font-weight: 900; color: #dc2626;">PH: 9561420666</div>
+              ` : `
+                <div style="font-weight: 900; color: #dc2626;">PH: 9850280800</div>
+                <div style="font-weight: 900; color: #dc2626;">PH: 8855050505</div>
+              `}
             </div>
           </div>
           
@@ -788,9 +793,9 @@ function generateBillHTML(bill: any, items: any[], pageNumber: number, totalPage
           <div class="footer-grid">
             <div class="words-section">
               <div>
-                <div style="font-weight: bold; font-size: 10px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Rs. in Words:</div>
-                <div style="font-size: 11px; font-weight: bold; line-height: 1.25; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
-                  ${totalInWords}
+                <div style="font-weight: bold; font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Rs. in Words:</div>
+                <div style="font-size: 12px; font-weight: bold; line-height: 1.25; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+                  ${totalInWords} Only.
                 </div>
               </div>
             </div>
@@ -844,8 +849,9 @@ function generateBillHTML(bill: any, items: any[], pageNumber: number, totalPage
                 <div class="bank-title">BANK DETAILS:</div>
                 <div class="bank-grid">
                   <div style="display: flex; gap: 8px;"><span>BANK :</span> <span style="color: #111827;">${bill.bank_name}</span></div>
-                  <div style="display: flex; gap: 8px;"><span>IFSC CODE NO. :</span> <span style="color: #111827;">${bill.bank_ifsc}</span></div>
-                  <div style="display: flex; gap: 8px;"><span>S. B. No. :</span> <span style="color: #111827;">${bill.bank_account}</span></div>
+                  ${bill.bank_branch ? `<div style="display: flex; gap: 8px;"><span>BRANCH :</span> <span style="color: #111827;">${bill.bank_branch}</span></div>` : ''}
+                  <div style="display: flex; gap: 8px;"><span>A/C NO :</span> <span style="color: #111827;">${bill.bank_account}</span></div>
+                  <div style="display: flex; gap: 8px;"><span>IFSC :</span> <span style="color: #111827;">${bill.bank_ifsc}</span></div>
                 </div>
               ` : ''}
             </div>

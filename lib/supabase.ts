@@ -45,6 +45,7 @@ export type Bill = {
   bank_name?: string
   bank_ifsc?: string
   bank_account?: string
+  bank_branch?: string
   notes?: string
   created_at: string
   updated_at: string
@@ -73,6 +74,7 @@ export type SavedBankDetail = {
   bank_name: string
   bank_ifsc: string
   bank_account: string
+  bank_branch?: string
   created_at: string
 }
 

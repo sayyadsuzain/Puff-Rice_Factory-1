@@ -15,6 +15,7 @@ interface BillPreviewProps {
   bankName?: string
   bankIFSC?: string
   bankAccount?: string
+  bankBranch?: string
   showBankDetails?: boolean
   items: Partial<BillItem>[]
   itemsTotal: number
@@ -107,7 +108,7 @@ const BILL_CSS = `
 
   .contact-info {
     text-align: right;
-    font-size: 8px;
+    font-size: 14px;
     font-weight: bold;
     color: #1f2937;
   }
@@ -300,7 +301,7 @@ const BILL_CSS = `
     color: #dc2626;
     margin-bottom: 2px;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 14px;
   }
 
   .bank-grid {
@@ -309,7 +310,7 @@ const BILL_CSS = `
     gap: 0px;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 14px;
     color: #1f2937;
   }
 
@@ -344,6 +345,7 @@ export default function BillPreview({
   bankName,
   bankIFSC,
   bankAccount,
+  bankBranch,
   showBankDetails = true,
   items,
   itemsTotal,
@@ -426,8 +428,8 @@ export default function BillPreview({
                   </div>
                   <div className="contact-info">
                     <div style={{ textTransform: 'uppercase' }}>Contact:</div>
-                    <div>9860022450</div>
-                    <div>9561420666</div>
+                    <div style={{ fontWeight: '900', color: '#dc2626' }}>PH: 9850280800</div>
+                    <div style={{ fontWeight: '900', color: '#dc2626' }}>PH: 8855050505</div>
                   </div>
                 </div>
                 
@@ -522,8 +524,8 @@ export default function BillPreview({
                 <div className="footer-grid">
                   <div className="words-section">
                     <div>
-                      <div style={{ fontWeight: 'bold', fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
-                      <div style={{ fontSize: '11px', fontWeight: 'bold', lineHeight: 1.25, borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
+                      <div style={{ fontSize: '12px', fontWeight: 'bold', lineHeight: 1.25, borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
                         {totalAmountWords || 'Zero Rupees Only.'}
                       </div>
                     </div>
@@ -578,8 +580,11 @@ export default function BillPreview({
                       <div className="bank-title">BANK DETAILS:</div>
                       <div className="bank-grid">
                         <div style={{ display: 'flex', gap: '8px' }}><span>BANK :</span> <span style={{ color: '#000' }}>{bankName}</span></div>
-                        <div style={{ display: 'flex', gap: '8px' }}><span>IFSC CODE :</span> <span style={{ color: '#000' }}>{bankIFSC}</span></div>
-                        <div style={{ display: 'flex', gap: '8px' }}><span>ACCOUNT NO. :</span> <span style={{ color: '#000' }}>{bankAccount}</span></div>
+                        {bankBranch && (
+                          <div style={{ display: 'flex', gap: '8px' }}><span>BRANCH :</span> <span style={{ color: '#000' }}>{bankBranch}</span></div>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}><span>A/C NO :</span> <span style={{ color: '#000' }}>{bankAccount}</span></div>
+                        <div style={{ display: 'flex', gap: '8px' }}><span>IFSC :</span> <span style={{ color: '#000' }}>{bankIFSC}</span></div>
                       </div>
                     </div>
                   )}

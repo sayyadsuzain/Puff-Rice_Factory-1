@@ -36,6 +36,7 @@ export default function EditBillPage() {
   const [bankName, setBankName] = useState('')
   const [bankIFSC, setBankIFSC] = useState('')
   const [bankAccount, setBankAccount] = useState('')
+  const [bankBranch, setBankBranch] = useState('')
   const [showBankDetails, setShowBankDetails] = useState(true)
   const [notes, setNotes] = useState('')
   const [billNumber, setBillNumber] = useState<number | null>(null)
@@ -243,7 +244,8 @@ export default function EditBillPage() {
           {
             bank_name: bankName.trim(),
             bank_ifsc: bankIFSC.trim(),
-            bank_account: bankAccount.trim()
+            bank_account: bankAccount.trim(),
+            bank_branch: bankBranch.trim()
           }
         ])
 
@@ -260,6 +262,7 @@ export default function EditBillPage() {
     setBankName(bank.bank_name)
     setBankIFSC(bank.bank_ifsc)
     setBankAccount(bank.bank_account)
+    setBankBranch(bank.bank_branch || '')
   }
 
   const fetchBillData = async () => {
@@ -326,6 +329,7 @@ export default function EditBillPage() {
         setBankName(billData.bank_name || '')
         setBankIFSC(billData.bank_ifsc || '')
         setBankAccount(billData.bank_account || '')
+        setBankBranch(billData.bank_branch || '')
         setNotes(billData.notes || '')
         setBillNumber(billData.bill_number)
 
@@ -455,6 +459,7 @@ export default function EditBillPage() {
         bank_name: billType === 'pakki' ? bankName : null,
         bank_ifsc: billType === 'pakki' ? bankIFSC : null,
         bank_account: billType === 'pakki' ? bankAccount : null,
+        bank_branch: billType === 'pakki' ? bankBranch : null,
         // GST fields
         is_gst_enabled: isGstEnabled,
         company_gst_number: billType === 'pakki' ? COMPANY_INFO.gst : null,
@@ -898,16 +903,25 @@ export default function EditBillPage() {
                             className="h-10 bg-white font-mono"
                           />
                         </div>
-                        <div className="space-y-2 text-left lg:col-span-full">
+                        <div className="space-y-2 text-left">
                           <Label className="text-xs font-bold text-gray-600">Account No.</Label>
                           <Input
                             placeholder="7292..."
                             value={bankAccount}
                             onChange={(e) => setBankAccount(e.target.value)}
-                            className="h-10 bg-white font-mono"
-                          />
+                              className="h-10 bg-white font-mono"
+                            />
+                          </div>
+                          <div className="space-y-2 text-left">
+                            <Label className="text-xs font-bold text-gray-600">Branch Name</Label>
+                            <Input
+                              placeholder="Kupwad Branch..."
+                              value={bankBranch}
+                              onChange={(e) => setBankBranch(e.target.value)}
+                              className="h-10 bg-white"
+                            />
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 )}
@@ -992,8 +1006,9 @@ export default function EditBillPage() {
                 balance={balance && parseFloat(balance) > 0 ? parseFloat(balance) : undefined}
                 bankName={bankName}
                 bankIFSC={bankIFSC}
-                bankAccount={bankAccount}
-                showBankDetails={billType === 'pakki'}
+                      bankAccount={bankAccount}
+                      bankBranch={bankBranch}
+                      showBankDetails={billType === 'pakki'}
                 items={items}
                 itemsTotal={totalAmount}
                 gstEnabled={isGstEnabled}

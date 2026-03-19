@@ -93,7 +93,7 @@ const BILL_CSS = `
 
   .contact-info {
     text-align: right;
-    font-size: 8px;
+    font-size: 14px;
     font-weight: bold;
     color: #1f2937;
   }
@@ -286,7 +286,7 @@ const BILL_CSS = `
     color: #dc2626;
     margin-bottom: 2px;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 14px;
   }
 
   .bank-grid {
@@ -295,7 +295,7 @@ const BILL_CSS = `
     gap: 0px;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 14px;
     color: #1f2937;
   }
 
@@ -429,8 +429,17 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 </div>
                 <div className="contact-info">
                   <div style={{ textTransform: 'uppercase' }}>Contact:</div>
-                  <div>9860022450</div>
-                  <div>9561420666</div>
+                  {isKacchi ? (
+                    <>
+                      <div style={{ fontWeight: '900', color: '#dc2626' }}>PH: 9860022450</div>
+                      <div style={{ fontWeight: '900', color: '#dc2626' }}>PH: 9561420666</div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight: '900', color: '#dc2626' }}>PH: 9850280800</div>
+                      <div style={{ fontWeight: '900', color: '#dc2626' }}>PH: 8855050505</div>
+                    </>
+                  )}
                 </div>
               </div>
               
@@ -524,12 +533,12 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
             <div className="form-footer">
               <div className="footer-grid">
                 <div className="words-section">
-                  <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
-                    <div style={{ fontSize: '11px', fontWeight: 'bold', lineHeight: 1.25, borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                      {totalInWords} Only.
+                    <div>
+                      <div style={{ fontWeight: 'bold', fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
+                      <div style={{ fontSize: '12px', fontWeight: 'bold', lineHeight: 1.25, borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        {totalInWords || 'Zero Rupees Only.'}
+                      </div>
                     </div>
-                  </div>
                 </div>
       
                 <div className="totals-section">
@@ -582,8 +591,11 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                       <div className="bank-title">BANK DETAILS:</div>
                       <div className="bank-grid">
                         <div style={{ display: 'flex', gap: '8px' }}><span>BANK :</span> <span style={{ color: '#000' }}>{bill.bank_name}</span></div>
-                        <div style={{ display: 'flex', gap: '8px' }}><span>IFSC CODE :</span> <span style={{ color: '#000' }}>{bill.bank_ifsc}</span></div>
-                        <div style={{ display: 'flex', gap: '8px' }}><span>ACCOUNT NO. :</span> <span style={{ color: '#000' }}>{bill.bank_account}</span></div>
+                        {bill.bank_branch && (
+                          <div style={{ display: 'flex', gap: '8px' }}><span>BRANCH :</span> <span style={{ color: '#000' }}>{bill.bank_branch}</span></div>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}><span>A/C NO :</span> <span style={{ color: '#000' }}>{bill.bank_account}</span></div>
+                        <div style={{ display: 'flex', gap: '8px' }}><span>IFSC :</span> <span style={{ color: '#000' }}>{bill.bank_ifsc}</span></div>
                       </div>
                     </>
                   ) : null}

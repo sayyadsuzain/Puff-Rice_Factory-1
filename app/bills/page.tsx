@@ -66,13 +66,24 @@ export default function BillsPage() {
 
   const filterBills = () => {
     let filtered = bills
+    const now = new Date()
+    const currentMonth = now.getMonth() // 0-11
+    const currentYear = now.getFullYear()
+
+    // Default view: ONLY current month if NOT searching
+    if (!searchTerm && billTypeFilter === 'all') {
+      filtered = filtered.filter(bill => {
+        const billDate = new Date(bill.bill_date)
+        return billDate.getMonth() === currentMonth && billDate.getFullYear() === currentYear
+      })
+    }
 
     // Filter by bill type
     if (billTypeFilter !== 'all') {
       filtered = filtered.filter(bill => bill.bill_type === billTypeFilter)
     }
 
-    // Filter by search term
+    // Filter by search term (Searches ALL history)
     if (searchTerm) {
       filtered = filtered.filter(bill =>
         bill.parties?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -212,7 +223,8 @@ export default function BillsPage() {
                 <p className="text-sm md:text-base text-muted-foreground">No bills found</p>
               </div>
             ) : (
-              <div>
+              <div className="max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+                <div>
                 {/* Mobile/Tablet Card View (shown on screens < md) */}
                 <div className="grid grid-cols-1 gap-4 md:hidden">
                   {filteredBills.map((bill) => (
@@ -413,6 +425,7 @@ export default function BillsPage() {
                     </TableBody>
                   </Table>
                 </div>
+              </div>
               </div>
             )}
           </CardContent>
