@@ -780,6 +780,9 @@ export default function CreateBillPage() {
                 partyGst={partyGst}
                 vehicleNumber={vehicleNumber}
                 balance={balance ? parseFloat(balance) : undefined}
+                bankName={bankName}
+                bankIFSC={bankIFSC}
+                bankAccount={bankAccount}
                 items={items}
                 itemsTotal={itemsTotal}
                 gstEnabled={isGstEnabled}

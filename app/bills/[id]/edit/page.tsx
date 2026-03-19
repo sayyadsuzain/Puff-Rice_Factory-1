@@ -743,9 +743,9 @@ export default function EditBillPage() {
                       partyGst={isGstEnabled ? partyGst : undefined}
                       vehicleNumber={vehicleNumber}
                       balance={balance && parseFloat(balance) > 0 ? parseFloat(balance) : undefined}
-                      bankName={billType === 'pakki' ? bankName : undefined}
-                      bankIFSC={billType === 'pakki' ? bankIFSC : undefined}
-                      bankAccount={billType === 'pakki' ? bankAccount : undefined}
+                      bankName={bankName}
+                      bankIFSC={bankIFSC}
+                      bankAccount={bankAccount}
                       showBankDetails={showBankDetails}
                       items={items}
                       itemsTotal={totalAmount}
