@@ -922,7 +922,7 @@ export default function EditBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Branch Name</Label>
                             <Input
-                              placeholder="Kupwad Branch..."
+                              placeholder="Sangli Branch..."
                               value={bankBranch}
                               onChange={(e) => setBankBranch(e.target.value)}
                               className="h-10 bg-white"
