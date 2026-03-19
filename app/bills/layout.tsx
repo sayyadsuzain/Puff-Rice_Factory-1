@@ -7,6 +7,9 @@ import { Logo } from '@/components/logo'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import { LogOut, Menu, X, FileText, Plus, List } from 'lucide-react'
+import { Playfair_Display } from 'next/font/google'
+
+const playfair = Playfair_Display({ subsets: ['latin'] })
 
 export default function BillsLayout({
   children,
@@ -26,7 +29,7 @@ export default function BillsLayout({
             <Link href="/bills" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
               <Logo />
               <div className="hidden xs:block">
-                <h1 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">MS Trading Co.</h1>
+                <h1 className={`${playfair.className} text-lg md:text-xl font-bold text-gray-900 leading-tight`}>MS Trading Co.</h1>
                 <p className="text-[10px] md:text-xs text-gray-500 font-medium">Bill Management System</p>
               </div>
             </Link>
