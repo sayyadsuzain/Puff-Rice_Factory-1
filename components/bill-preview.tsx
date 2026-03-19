@@ -120,12 +120,13 @@ export default function BillPreview({
 
             {/* Watermark — Fainter and more professional */}
             <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.015]"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0"
               style={{ 
                 fontSize: '480px', 
                 fontWeight: 900, 
                 fontFamily: '"Inter", sans-serif', 
                 color: '#000',
+                opacity: 0.015,
                 textAlign: 'center',
                 lineHeight: 1,
                 letterSpacing: '-0.02em'
