@@ -53,6 +53,8 @@ export default function EditBillPage() {
   const [gstTotal, setGstTotal] = useState(0)
   const [grandTotal, setGrandTotal] = useState(0)
   const [partyGst, setPartyGst] = useState('')
+  const [originalPartyGst, setOriginalPartyGst] = useState('')
+  const [shouldUpdatePartyGst, setShouldUpdatePartyGst] = useState(false)
 
   // Auto-format vehicle number to uppercase
   useEffect(() => {
@@ -149,6 +151,7 @@ export default function EditBillPage() {
   const handlePartySelect = (partyId: number | null, name: string) => {
     setSelectedPartyId(partyId)
     setPartyName(name)
+    setShouldUpdatePartyGst(false)
 
     // Fetch party GST if party is selected
     if (partyId) {
@@ -159,11 +162,14 @@ export default function EditBillPage() {
         .single()
         .then(({ data, error }) => {
           if (!error && data) {
-            setPartyGst(data.gst_number || '')
+            const gst = data.gst_number || ''
+            setPartyGst(gst)
+            setOriginalPartyGst(gst)
           }
         })
     } else {
       setPartyGst('')
+      setOriginalPartyGst('')
     }
   }
 
@@ -321,9 +327,11 @@ export default function EditBillPage() {
 
           if (!partyError && partyData) {
             console.log('✅ EDIT PAGE: Party data fetched:', partyData)
+            const gst = partyData.gst_number || ''
+            setPartyGst(gst)
+            setOriginalPartyGst(gst)
             setSelectedPartyId(billData.party_id)
             setPartyName(partyData.name)
-            setPartyGst(partyData.gst_number || '')
           } else {
             console.error('❌ EDIT PAGE: Failed to fetch party data:', partyError)
           }
@@ -453,9 +461,24 @@ export default function EditBillPage() {
     }
 
     setLoading(true)
-    console.log('Starting bill update process...')
+    console.log('🔄 EDIT PAGE: Starting save process...')
 
     try {
+      // Sync GST if requested
+      if (shouldUpdatePartyGst && selectedPartyId && partyGst !== originalPartyGst) {
+        console.log('Syncing updated GST to party record...')
+        const { error: syncError } = await supabase
+          .from('parties')
+          .update({ gst_number: partyGst })
+          .eq('id', selectedPartyId)
+        
+        if (syncError) {
+          console.error('Failed to sync GST:', syncError)
+          toast.error('Bill will be saved, but party GST update failed.')
+        } else {
+          toast.success('Party GST updated in settings!')
+        }
+      }
       console.log('Updating bill record...')
       // Update bill
       const billUpdateData = {
@@ -680,10 +703,37 @@ export default function EditBillPage() {
                     />
                   </div>
 
-                  {partyGst && billType === 'pakki' && (
-                    <div className="text-xs font-bold text-emerald-700 bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2 shadow-sm animate-in fade-in slide-in-from-top-1">
-                      <span className="opacity-60 uppercase tracking-wider text-[10px]">GSTIN:</span> 
-                      <span className="font-mono">{partyGst}</span>
+                  {billType === 'pakki' && isGstEnabled && (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black text-emerald-800 uppercase tracking-widest pl-1">Modify Party GST (Optional)</Label>
+                        <div className="relative group">
+                          <Input
+                            placeholder="27XXXXX0000X0Z0"
+                            value={partyGst}
+                            onChange={(e) => setPartyGst(e.target.value.toUpperCase())}
+                            className="h-10 bg-white font-mono uppercase font-bold border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500/20 transition-all pl-9"
+                          />
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 opacity-50 group-hover:opacity-100 transition-opacity">
+                            <span className="text-[10px] font-black">GST</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {partyGst !== originalPartyGst && selectedPartyId && (
+                        <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg animate-in fade-in slide-in-from-top-1">
+                          <input
+                            type="checkbox"
+                            id="sync-gst-edit"
+                            checked={shouldUpdatePartyGst}
+                            onChange={(e) => setShouldUpdatePartyGst(e.target.checked)}
+                            className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                          />
+                          <Label htmlFor="sync-gst-edit" className="text-[11px] font-bold text-amber-900 cursor-pointer">
+                            Update this GST number in Party Settings?
+                          </Label>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

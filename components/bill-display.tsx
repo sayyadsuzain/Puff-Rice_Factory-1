@@ -472,7 +472,7 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                       <span>{bill.vehicle_number}</span>
                     </div>
                   ) : <div></div>}
-                  {!isKacchi && partyGst ? (
+                  {!isKacchi && bill.is_gst_enabled && partyGst ? (
                     <div>
                       <span style={{ color: '#4b5563' }}>GST No.: </span>
                       <span>{partyGst}</span>
