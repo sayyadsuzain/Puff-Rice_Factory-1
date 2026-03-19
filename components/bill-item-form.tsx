@@ -104,12 +104,6 @@ export default function BillItemForm({ index, item, onUpdate, onRemove }: BillIt
                   ))}
                 </SelectContent>
               </Select>
-              <Input
-                placeholder="Custom"
-                value={item.particular || ''}
-                onChange={(e) => handleParticularChange(e.target.value)}
-                className="flex-1 text-sm md:text-base"
-              />
             </div>
           </div>
 

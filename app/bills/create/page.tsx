@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO, SavedBankDetail, numberToWords } from '@/lib/supabase'
 import BillPreview from '@/components/bill-preview'
@@ -47,6 +47,7 @@ export default function CreateBillPage() {
   const [bankAccount, setBankAccount] = useState('7292000100047001')
   const [showBankDetails, setShowBankDetails] = useState(true)
   const [savedBankDetails, setSavedBankDetails] = useState<SavedBankDetail[]>([])
+  const [defaultBankId, setDefaultBankId] = useState<number | null>(null)
 
   // Items & Calculations
   const [items, setItems] = useState<Partial<BillItem>[]>([])
@@ -62,7 +63,18 @@ export default function CreateBillPage() {
   useEffect(() => {
     console.log('CreateBillPage mounted, fetching initial data...')
     fetchNextBillNumber()
-    fetchSavedBankDetails()
+    fetchSavedBankDetails().then((banks: SavedBankDetail[]) => {
+      // Check for default bank in localStorage
+      const savedDefaultId = localStorage.getItem('default_bank_id')
+      if (savedDefaultId && banks && banks.length > 0) {
+        const id = parseInt(savedDefaultId)
+        setDefaultBankId(id)
+        const defaultBank = banks.find(b => b.id === id)
+        if (defaultBank) {
+          loadBankDetails(defaultBank)
+        }
+      }
+    })
   }, [])
 
   const getFinancialYear = (date: Date) => {
@@ -146,8 +158,10 @@ export default function CreateBillPage() {
       if (error) throw error
 
       setSavedBankDetails(data || [])
+      return data || []
     } catch (error) {
       console.error('Error fetching saved bank details:', error)
+      return []
     }
   }
 
@@ -228,6 +242,45 @@ export default function CreateBillPage() {
     setBankName(bank.bank_name)
     setBankIFSC(bank.bank_ifsc)
     setBankAccount(bank.bank_account)
+  }
+
+  const handleDeleteBankDetail = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this bank profile?')) return
+
+    try {
+      const { error } = await supabase
+        .from('saved_bank_details')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      
+      toast.success('Bank detail deleted')
+      fetchSavedBankDetails()
+      
+      // Clear default if deleted
+      if (defaultBankId === id) {
+        setDefaultBankId(null)
+        localStorage.removeItem('default_bank_id')
+      }
+    } catch (error) {
+      console.error('Error deleting bank:', error)
+      toast.error('Failed to delete bank detail')
+    }
+  }
+
+  const handleSetDefaultBankDetail = (bank: SavedBankDetail) => {
+    if (defaultBankId === bank.id) {
+      // Unset default
+      setDefaultBankId(null)
+      localStorage.removeItem('default_bank_id')
+      toast.success('Default bank removed')
+    } else {
+      // Set default
+      setDefaultBankId(bank.id!)
+      localStorage.setItem('default_bank_id', bank.id!.toString())
+      toast.success(`Set ${bank.bank_name} as default`)
+    }
   }
 
   const handleAddItem = () => {
@@ -650,20 +703,65 @@ export default function CreateBillPage() {
 
                       <div className="space-y-5">
                         {savedBankDetails.length > 0 && (
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-orange-800 uppercase">Quick Load Past Bank</Label>
-                            <Select onValueChange={(value) => loadBankDetails(savedBankDetails[parseInt(value)])}>
-                              <SelectTrigger className="h-10 bg-white border-orange-100" suppressHydrationWarning>
-                                <SelectValue placeholder="Select a saved bank profile..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {savedBankDetails.map((bank, index) => (
-                                  <SelectItem key={bank.id || index} value={index.toString()}>
-                                    {bank.bank_name} - {bank.bank_account}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <div className="space-y-3">
+                            <Label className="text-xs font-bold text-orange-800 uppercase">Saved Bank Profiles</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                              {savedBankDetails.map((bank) => (
+                                <div 
+                                  key={bank.id} 
+                                  className={`flex items-center justify-between p-3 rounded-xl border transition-all hover:shadow-md group ${
+                                    bankAccount === bank.bank_account 
+                                      ? 'bg-orange-100 border-orange-300 ring-2 ring-orange-400/20' 
+                                      : 'bg-white border-orange-100'
+                                  }`}
+                                >
+                                  <div 
+                                    className="flex-1 cursor-pointer min-w-0"
+                                    onClick={() => loadBankDetails(bank)}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-black text-gray-900 truncate">{bank.bank_name}</p>
+                                      {defaultBankId === bank.id && (
+                                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                                      )}
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-mono font-bold">{bank.bank_account}</p>
+                                  </div>
+                                  <div className="flex gap-1 ml-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleSetDefaultBankDetail(bank)
+                                      }}
+                                      className={`h-8 w-8 p-0 rounded-lg transition-colors ${
+                                        defaultBankId === bank.id 
+                                          ? 'text-amber-600 bg-amber-50' 
+                                          : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
+                                      }`}
+                                      title={defaultBankId === bank.id ? "Default Account" : "Set as Default"}
+                                    >
+                                      <Star className={`h-4 w-4 ${defaultBankId === bank.id ? 'fill-current' : ''}`} />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDeleteBankDetail(bank.id!)
+                                      }}
+                                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                      title="Delete Profile"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
 

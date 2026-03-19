@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Trash2, Star } from 'lucide-react'
 import { toast } from 'sonner'
-import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO } from '@/lib/supabase'
+import { supabase, Bill, BillItem, FIXED_PRODUCTS, COMPANY_INFO, SavedBankDetail } from '@/lib/supabase'
 import BillPreview from '@/components/bill-preview'
 import BillItemForm from '@/components/bill-item-form'
 import { GSTToggle } from '@/components/gst-toggle'
@@ -42,6 +42,8 @@ export default function EditBillPage() {
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [savedBankDetails, setSavedBankDetails] = useState<SavedBankDetail[]>([])
+  const [defaultBankId, setDefaultBankId] = useState<number | null>(null)
 
   // GST-related state variables
   const [isGstEnabled, setIsGstEnabled] = useState(false)
@@ -76,6 +78,13 @@ export default function EditBillPage() {
     if (billId) {
       console.log('🔄 EDIT PAGE: Starting to fetch bill data for ID:', billId)
       fetchBillData()
+      fetchSavedBankDetails().then((banks: SavedBankDetail[]) => {
+        // Check for default bank in localStorage
+        const savedDefaultId = localStorage.getItem('default_bank_id')
+        if (savedDefaultId && banks && banks.length > 0) {
+          setDefaultBankId(parseInt(savedDefaultId))
+        }
+      })
     } else {
       console.log('❌ EDIT PAGE: No billId provided')
     }
@@ -155,6 +164,102 @@ export default function EditBillPage() {
     } else {
       setPartyGst('')
     }
+  }
+
+  const fetchSavedBankDetails = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saved_bank_details')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setSavedBankDetails(data || [])
+      return data || []
+    } catch (error) {
+      console.error('Error fetching saved bank details:', error)
+      return []
+    }
+  }
+
+  const handleDeleteBankDetail = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this bank profile?')) return
+
+    try {
+      const { error } = await supabase
+        .from('saved_bank_details')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      
+      toast.success('Bank detail deleted')
+      fetchSavedBankDetails()
+      
+      if (defaultBankId === id) {
+        setDefaultBankId(null)
+        localStorage.removeItem('default_bank_id')
+      }
+    } catch (error) {
+      console.error('Error deleting bank:', error)
+      toast.error('Failed to delete bank detail')
+    }
+  }
+
+  const handleSetDefaultBankDetail = (bank: SavedBankDetail) => {
+    if (defaultBankId === bank.id) {
+      setDefaultBankId(null)
+      localStorage.removeItem('default_bank_id')
+      toast.success('Default bank removed')
+    } else {
+      setDefaultBankId(bank.id!)
+      localStorage.setItem('default_bank_id', bank.id!.toString())
+      toast.success(`Set ${bank.bank_name} as default`)
+    }
+  }
+
+  const handleSaveBankDetails = async () => {
+    if (!bankName.trim() || !bankIFSC.trim() || !bankAccount.trim()) {
+      toast.error('Please fill all bank details before saving')
+      return
+    }
+
+    try {
+      const { data: existingBanks } = await supabase
+        .from('saved_bank_details')
+        .select('id')
+        .eq('bank_name', bankName.trim())
+        .eq('bank_ifsc', bankIFSC.trim())
+        .eq('bank_account', bankAccount.trim())
+
+      if (existingBanks && existingBanks.length > 0) {
+        toast.error('This bank details already exists in saved banks')
+        return
+      }
+
+      const { error: saveError } = await supabase
+        .from('saved_bank_details')
+        .insert([
+          {
+            bank_name: bankName.trim(),
+            bank_ifsc: bankIFSC.trim(),
+            bank_account: bankAccount.trim()
+          }
+        ])
+
+      if (saveError) throw saveError
+      await fetchSavedBankDetails()
+      toast.success('Bank details saved successfully!')
+    } catch (error) {
+      console.error('Error saving bank details:', error)
+      toast.error('Failed to save bank details')
+    }
+  }
+
+  const loadSavedBankDetails = (bank: SavedBankDetail) => {
+    setBankName(bank.bank_name)
+    setBankIFSC(bank.bank_ifsc)
+    setBankAccount(bank.bank_account)
   }
 
   const fetchBillData = async () => {
@@ -497,9 +602,9 @@ export default function EditBillPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8 xl:h-[calc(100vh-180px)] xl:overflow-hidden px-1">
           {/* Form Section */}
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-4 md:space-y-6 xl:h-full xl:overflow-y-auto xl:pr-4 custom-scrollbar">
             <Card className="bg-white shadow-md rounded-lg">
               <CardHeader className="pb-4 md:pb-6">
                 <CardTitle className="text-lg md:text-xl">Edit Bill</CardTitle>
@@ -786,6 +891,21 @@ export default function EditBillPage() {
                 </div>
               </div>
             </div>
-          </ProtectedRoute>
+            <style jsx global>{`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #cbd5e1;
+              border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #94a3b8;
+            }
+          `}</style>
+        </ProtectedRoute>
         )
       }
