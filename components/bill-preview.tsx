@@ -492,7 +492,7 @@ export default function BillPreview({
                       </tr>
                     ))}
                     {Array.from({ length: Math.max(0, 16 - items.length) }).map((_, idx) => (
-                      <tr key={`empty-${idx}`} className="h-24">
+                      <tr key={`empty-${idx}`} className="item-row">
                         <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
                         <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
                         <td style={{ borderLeft: '0.5px solid #9ca3af', borderRight: '0.5px solid #9ca3af' }}></td>
