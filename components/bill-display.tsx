@@ -184,8 +184,15 @@ const BILL_CSS = `
     font-weight: 600;
   }
 
+  .items-table-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
   .items-table {
     width: 100%;
+    height: 100%;
     font-size: 11px;
     border-collapse: collapse;
     table-layout: fixed;
