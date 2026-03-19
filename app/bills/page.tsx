@@ -223,9 +223,9 @@ export default function BillsPage() {
                 <p className="text-sm md:text-base text-muted-foreground">No bills found</p>
               </div>
             ) : (
-              <div className="max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar border rounded-xl shadow-sm bg-white p-1">
                 <div>
-                {/* Mobile/Tablet Card View (shown on screens < md) */}
+                  {/* Mobile/Tablet Card View (shown on screens < md) */}
                 <div className="grid grid-cols-1 gap-4 md:hidden">
                   {filteredBills.map((bill) => (
                     <Card key={bill.id} className="overflow-hidden border-l-4 shadow-sm" style={{ borderLeftColor: bill.bill_type === 'kacchi' ? '#ef4444' : '#6366f1' }}>
