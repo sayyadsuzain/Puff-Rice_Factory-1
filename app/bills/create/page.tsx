@@ -245,7 +245,8 @@ export default function CreateBillPage() {
     setItems(newItems)
   }
 
-  const handleSaveBill = async () => {
+  const handleSaveBill = async (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!selectedPartyId || !partyName.trim()) {
       toast.error('Please select a party')
       return

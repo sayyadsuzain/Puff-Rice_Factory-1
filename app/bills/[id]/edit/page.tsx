@@ -322,7 +322,8 @@ export default function EditBillPage() {
     setItems(newItems)
   }
 
-  const handleSaveBill = async () => {
+  const handleSaveBill = async (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!partyName.trim()) {
       toast.error('Please enter party name')
       return
