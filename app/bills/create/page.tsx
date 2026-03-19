@@ -723,8 +723,13 @@ export default function CreateBillPage() {
                                     className="flex-1 cursor-pointer min-w-0"
                                     onClick={() => loadBankDetails(bank)}
                                   >
-                                    <div className="flex items-center gap-2">
-                                      <p className="text-sm font-black text-gray-900 truncate">{bank.bank_name}</p>
+                                    <div className="font-extrabold text-slate-900 flex items-center gap-1 max-w-full">
+                                      <span className="truncate">{bank.bank_name}</span>
+                                      {bank.bank_branch && (
+                                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 py-0.5 rounded truncate shrink-0" title={bank.bank_branch}>
+                                          {bank.bank_branch}
+                                        </span>
+                                      )}
                                       {defaultBankId === bank.id && (
                                         <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                                       )}
@@ -769,7 +774,7 @@ export default function CreateBillPage() {
                           </div>
                         )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Bank Name</Label>
                             <Input
