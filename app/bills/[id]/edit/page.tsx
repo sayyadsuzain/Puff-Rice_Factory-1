@@ -234,7 +234,16 @@ export default function EditBillPage() {
         .eq('bank_account', bankAccount.trim())
 
       if (existingBanks && existingBanks.length > 0) {
-        toast.error('This bank details already exists in saved banks')
+        // Update existing bank's branch if it matches name/ifsc/account
+        const { error: updateError } = await supabase
+          .from('saved_bank_details')
+          .update({ bank_branch: bankBranch.trim() })
+          .eq('id', existingBanks[0].id)
+
+        if (updateError) throw updateError
+
+        await fetchSavedBankDetails()
+        toast.success('Bank details updated successfully!')
         return
       }
 
