@@ -271,7 +271,7 @@ export default function EditBillPage() {
     setBankName(bank.bank_name)
     setBankIFSC(bank.bank_ifsc)
     setBankAccount(bank.bank_account)
-    setBankBranch(bank.bank_branch || 'SANGLI BRANCH')
+    setBankBranch(bank.bank_branch || '')
   }
 
   const fetchBillData = async () => {
@@ -933,7 +933,7 @@ export default function EditBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Branch Name</Label>
                             <Input
-                              placeholder="Sangli Branch..."
+                              placeholder="SANGLI BRANCH"
                               value={bankBranch}
                               onChange={(e) => setBankBranch(e.target.value)}
                               className="h-10 bg-white"

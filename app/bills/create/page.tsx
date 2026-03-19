@@ -45,7 +45,7 @@ export default function CreateBillPage() {
   const [bankName, setBankName] = useState('KARNATAKA BANK LTD.')
   const [bankIFSC, setBankIFSC] = useState('KARB0000729')
   const [bankAccount, setBankAccount] = useState('7292000100047001')
-  const [bankBranch, setBankBranch] = useState('SANGLI BRANCH')
+  const [bankBranch, setBankBranch] = useState('')
   const [showBankDetails, setShowBankDetails] = useState(false)
   const [savedBankDetails, setSavedBankDetails] = useState<SavedBankDetail[]>([])
   const [defaultBankId, setDefaultBankId] = useState<number | null>(null)
@@ -254,7 +254,7 @@ export default function CreateBillPage() {
     setBankName(bank.bank_name)
     setBankIFSC(bank.bank_ifsc)
     setBankAccount(bank.bank_account)
-    setBankBranch(bank.bank_branch || 'SANGLI BRANCH')
+    setBankBranch(bank.bank_branch || '')
   }
 
   const handleDeleteBankDetail = async (id: number) => {
@@ -816,7 +816,7 @@ export default function CreateBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Branch Name</Label>
                             <Input
-                              placeholder="Sangli Branch..."
+                              placeholder="SANGLI BRANCH"
                               value={bankBranch}
                               onChange={(e) => setBankBranch(e.target.value)}
                               className="h-10 bg-white"
