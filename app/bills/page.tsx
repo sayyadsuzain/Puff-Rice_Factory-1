@@ -104,9 +104,9 @@ export default function BillsPage() {
       const token = session?.access_token
 
       // Construct URL with auth token for window.open
-      const pdfUrl = `/api/bill-pdf?id=${billId}${token ? `&token=${token}` : ''}`
+      const printUrl = `/print?id=${billId}${token ? `&token=${token}` : ''}`
       
-      window.open(pdfUrl, '_blank')
+      window.open(printUrl, '_blank')
       toast.success('PDF preview opened!', { id: 'print' })
     } catch (error) {
       console.error('❌ BILL-LIST: Error generating PDF:', error)

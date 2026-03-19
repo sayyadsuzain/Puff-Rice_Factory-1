@@ -100,9 +100,9 @@ export default function BillDetailPage() {
       const token = session?.access_token
 
       // Construct URL with auth token for window.open (restores original functionality)
-      const pdfUrl = `/api/bill-pdf?id=${billId}${token ? `&token=${token}` : ''}`
+      const printUrl = `/print?id=${billId}${token ? `&token=${token}` : ''}`
       
-      window.open(pdfUrl, '_blank')
+      window.open(printUrl, '_blank')
       toast.success('PDF preview opened!', { id: 'print' })
     } catch (error) {
       console.error('Error generating PDF:', error)
