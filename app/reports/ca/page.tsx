@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Download, FileText, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Bill {
   id: string
@@ -81,6 +82,7 @@ export default function MonthlyBillBookPage() {
   }
 
   const fetchBills = async () => {
+    setLoading(true)
     try {
       console.log('Fetching bills for:', selectedFY, selectedMonth)
 
@@ -197,9 +199,11 @@ export default function MonthlyBillBookPage() {
         }
       }
       setBillItems(itemsMap)
+      toast.success(`Fetched ${billsData.length} bills`)
 
     } catch (error) {
       console.error('Error fetching bills:', error)
+      toast.error('Failed to fetch bills')
     } finally {
       setLoading(false)
     }
@@ -626,84 +630,87 @@ export default function MonthlyBillBookPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {bills.length > 0 ? (
-            <div className="space-y-6">
-              {/* Monthly Bill Books */}
-              <div>
-                <h4 className="font-medium mb-3 text-sm text-gray-700">Monthly Bill Books (Selected Month)</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  <Button
-                    onClick={generateMonthlyBillBookPDF}
-                    disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Download className="h-4 w-4" />
-                    {generatingMonthly ? 'Generating...' : 'Combined Monthly'}
-                  </Button>
-                  <Button
-                    onClick={generateMonthlyKacchiBillBookPDF}
-                    disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <Download className="h-4 w-4" />
-                    {generatingMonthlyKacchi ? 'Generating...' : 'Kacchi Monthly'}
-                  </Button>
-                  <Button
-                    onClick={generateMonthlyPakkiBillBookPDF}
-                    disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
-                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Download className="h-4 w-4" />
-                    {generatingMonthlyPakki ? 'Generating...' : 'Pakki Monthly'}
-                  </Button>
+          <div className="space-y-6">
+            {bills.length > 0 ? (
+              <>
+                {/* Monthly Bill Books */}
+                <div>
+                  <h4 className="font-medium mb-3 text-sm text-gray-700">Monthly Bill Books (Selected Month)</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <Button
+                      onClick={generateMonthlyBillBookPDF}
+                      disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 font-bold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generatingMonthly ? 'Generating...' : 'Combined Monthly'}
+                    </Button>
+                    <Button
+                      onClick={generateMonthlyKacchiBillBookPDF}
+                      disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 font-bold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generatingMonthlyKacchi ? 'Generating...' : 'Kacchi Monthly'}
+                    </Button>
+                    <Button
+                      onClick={generateMonthlyPakkiBillBookPDF}
+                      disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
+                      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 font-bold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generatingMonthlyPakki ? 'Generating...' : 'Pakki Monthly'}
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Yearly Bill Books */}
-              <div>
-                <h4 className="font-medium mb-3 text-sm text-gray-700">Yearly Bill Books (Full Financial Year)</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  <Button
-                    onClick={generateYearlyBillBookPDF}
-                    variant="outline"
-                    disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    {generatingYearly ? 'Generating...' : 'Combined Yearly'}
-                  </Button>
-                  <Button
-                    onClick={generateYearlyKacchiBillBookPDF}
-                    variant="outline"
-                    disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
-                    className="flex items-center gap-2 border-green-600 text-green-600 hover:bg-green-50"
-                  >
-                    <Download className="h-4 w-4" />
-                    {generatingYearlyKacchi ? 'Generating...' : 'Kacchi Yearly'}
-                  </Button>
-                  <Button
-                    onClick={generateYearlyPakkiBillBookPDF}
-                    variant="outline"
-                    disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
-                    className="flex items-center gap-2 border-purple-600 text-purple-600 hover:bg-purple-50"
-                  >
-                    <Download className="h-4 w-4" />
-                    {generatingYearlyPakki ? 'Generating...' : 'Pakki Yearly'}
-                  </Button>
+                {/* Yearly Bill Books */}
+                <div>
+                  <h4 className="font-medium mb-3 text-sm text-gray-700">Yearly Bill Books (Full Financial Year)</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <Button
+                      onClick={generateYearlyBillBookPDF}
+                      variant="outline"
+                      disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
+                      className="flex items-center gap-2 font-bold border-blue-200 text-blue-700 hover:bg-blue-50"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generatingYearly ? 'Generating...' : 'Combined Yearly'}
+                    </Button>
+                    <Button
+                      onClick={generateYearlyKacchiBillBookPDF}
+                      variant="outline"
+                      disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
+                      className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50 font-bold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generatingYearlyKacchi ? 'Generating...' : 'Kacchi Yearly'}
+                    </Button>
+                    <Button
+                      onClick={generateYearlyPakkiBillBookPDF}
+                      variant="outline"
+                      disabled={generatingMonthly || generatingYearly || generatingMonthlyKacchi || generatingMonthlyPakki || generatingYearlyKacchi || generatingYearlyPakki}
+                      className="flex items-center gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 font-bold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {generatingYearlyPakki ? 'Generating...' : 'Pakki Yearly'}
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="text-sm text-muted-foreground flex items-center">
-                <FileText className="h-4 w-4 mr-1" />
-                Files: BillBook_{MONTHS.find(m => m.value === selectedMonth)?.label}_{selectedFY}.pdf & YearlyBillBook_{selectedFY}.pdf
+                <div className="text-sm text-muted-foreground flex items-center bg-gray-50 p-3 rounded-lg border border-gray-100 italic">
+                  <FileText className="h-4 w-4 mr-2 text-gray-400" />
+                  Format: BillBook_{MONTHS.find(m => m.value === selectedMonth)?.label}_{selectedFY}.pdf
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-10 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                <p className="text-gray-500 font-medium">No bills found for the selected month/year</p>
+                <p className="text-xs text-gray-400 mt-1">Try refreshing or selecting a different period</p>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm">Please select a different month or financial year.</p>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
 
