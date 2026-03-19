@@ -107,7 +107,7 @@ export function generateBillHTML(
               <span style="font-weight: bold;">M/s. </span>
               <span class="party-name-underline">${partyName || '_'.repeat(40)}</span>
             </div>
-            ${(bill.vehicle_number || (!isKacchi && partyGst)) ? `
+            ${(bill.vehicle_number || (!isKacchi && bill.is_gst_enabled && partyGst)) ? `
               <div class="vehicle-gst-row">
                 ${bill.vehicle_number ? `
                   <div>
@@ -115,7 +115,7 @@ export function generateBillHTML(
                     <span>${bill.vehicle_number}</span>
                   </div>
                 ` : '<div></div>'}
-                ${!isKacchi && partyGst ? `
+                ${!isKacchi && bill.is_gst_enabled && partyGst ? `
                   <div>
                     <span style="color: #4b5563;">GST No.: </span>
                     <span>${partyGst}</span>

@@ -464,7 +464,7 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 <span style={{ fontWeight: 'bold' }}>M/s. </span>
                 <span className="party-name-underline">{partyName || '_'.repeat(40)}</span>
               </div>
-              {(bill.vehicle_number || (!isKacchi && partyGst)) ? (
+              {(bill.vehicle_number || (!isKacchi && bill.is_gst_enabled && partyGst)) ? (
                 <div className="vehicle-gst-row">
                   {bill.vehicle_number ? (
                     <div>
