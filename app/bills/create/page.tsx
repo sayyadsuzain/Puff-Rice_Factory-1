@@ -621,6 +621,7 @@ export default function CreateBillPage() {
                         )}
                       </div>
                     )}
+
                   </div>
 
                   {/* STEP 3: VEHICLE & LOGISTICS */}
@@ -738,6 +739,10 @@ export default function CreateBillPage() {
                           itemsTotal={itemsTotal}
                           partyGst={partyGst}
                           onPartyGstChange={setPartyGst}
+                          originalPartyGst={originalPartyGst}
+                          shouldUpdatePartyGst={shouldUpdatePartyGst}
+                          onShouldUpdatePartyGstChange={setShouldUpdatePartyGst}
+                          selectedPartyId={selectedPartyId}
                         />
                       </div>
                     </div>
