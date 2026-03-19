@@ -627,8 +627,8 @@ export default function EditBillPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="kacchi">Kacchi (Cash)</SelectItem>
-                          <SelectItem value="pakki">Pakki (Credit/GST)</SelectItem>
+                          <SelectItem value="kacchi">Kacchi (Cash/Rough)</SelectItem>
+                          <SelectItem value="pakki">Pakki (GST Invoice)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -796,6 +796,122 @@ export default function EditBillPage() {
                   </div>
                 )}
 
+                {/* STEP 6: BANK INFORMATION (PAKKI ONLY) */}
+                {billType === 'pakki' && (
+                  <div className="space-y-5 p-4 sm:p-5 bg-orange-50/50 rounded-xl border border-orange-100 shadow-sm">
+                     <div className="flex items-center justify-between">
+                       <h3 className="text-lg font-bold text-orange-900 flex items-center gap-2">
+                        <span className="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black">6</span>
+                        Bank Information
+                      </h3>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleSaveBankDetails}
+                        className="h-8 text-[10px] sm:text-xs font-bold border-orange-200 text-orange-700 bg-white shadow-sm"
+                      >
+                        Keep for Future
+                      </Button>
+                     </div>
+
+                    <div className="space-y-5">
+                      {savedBankDetails.length > 0 && (
+                        <div className="space-y-3">
+                          <Label className="text-xs font-bold text-orange-800 uppercase tracking-wider">Saved Bank Profiles</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                            {savedBankDetails.map((bank) => (
+                              <div 
+                                key={bank.id} 
+                                className={`flex items-center justify-between p-3 rounded-xl border transition-all hover:shadow-md group ${
+                                  bankAccount === bank.bank_account 
+                                    ? 'bg-orange-100 border-orange-300 ring-2 ring-orange-400/20' 
+                                    : 'bg-white border-orange-100'
+                                }`}
+                              >
+                                <div 
+                                  className="flex-1 cursor-pointer min-w-0"
+                                  onClick={() => loadSavedBankDetails(bank)}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-black text-gray-900 truncate">{bank.bank_name}</p>
+                                    {defaultBankId === bank.id && (
+                                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-gray-500 font-mono font-bold">{bank.bank_account}</p>
+                                </div>
+                                <div className="flex gap-1 ml-2">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleSetDefaultBankDetail(bank)
+                                    }}
+                                    className={`h-8 w-8 p-0 rounded-lg transition-colors ${
+                                      defaultBankId === bank.id 
+                                        ? 'text-amber-600 bg-amber-50' 
+                                        : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
+                                    }`}
+                                    title={defaultBankId === bank.id ? "Default Account" : "Set as Default"}
+                                  >
+                                    <Star className={`h-4 w-4 ${defaultBankId === bank.id ? 'fill-current' : ''}`} />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDeleteBankDetail(bank.id!)
+                                    }}
+                                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Delete Profile"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="space-y-2 text-left">
+                          <Label className="text-xs font-bold text-gray-600">Bank Name</Label>
+                          <Input
+                            placeholder="Karnatka Bank..."
+                            value={bankName}
+                            onChange={(e) => setBankName(e.target.value)}
+                            className="h-10 bg-white"
+                          />
+                        </div>
+                        <div className="space-y-2 text-left">
+                          <Label className="text-xs font-bold text-gray-600">IFSC Code</Label>
+                          <Input
+                            placeholder="KARB000..."
+                            value={bankIFSC}
+                            onChange={(e) => setBankIFSC(e.target.value)}
+                            className="h-10 bg-white font-mono"
+                          />
+                        </div>
+                        <div className="space-y-2 text-left lg:col-span-full">
+                          <Label className="text-xs font-bold text-gray-600">Account No.</Label>
+                          <Input
+                            placeholder="7292..."
+                            value={bankAccount}
+                            onChange={(e) => setBankAccount(e.target.value)}
+                            className="h-10 bg-white font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                       {/* FINAL STEP: GRAND REVIEW */}
                       <div className="space-y-5 p-4 sm:p-6 bg-slate-900 text-white rounded-2xl shadow-xl border-4 border-slate-800">
                         <h3 className="text-xl font-black flex items-center gap-3">
@@ -877,7 +993,7 @@ export default function EditBillPage() {
                       bankName={bankName}
                       bankIFSC={bankIFSC}
                       bankAccount={bankAccount}
-                      showBankDetails={showBankDetails}
+                      showBankDetails={billType === 'pakki'}
                       items={items}
                       itemsTotal={totalAmount}
                       gstEnabled={isGstEnabled}

@@ -45,7 +45,7 @@ export default function CreateBillPage() {
   const [bankName, setBankName] = useState('KARNATAKA BANK LTD.')
   const [bankIFSC, setBankIFSC] = useState('KARB0000729')
   const [bankAccount, setBankAccount] = useState('7292000100047001')
-  const [showBankDetails, setShowBankDetails] = useState(true)
+  const [showBankDetails, setShowBankDetails] = useState(false)
   const [savedBankDetails, setSavedBankDetails] = useState<SavedBankDetail[]>([])
   const [defaultBankId, setDefaultBankId] = useState<number | null>(null)
 
@@ -870,6 +870,7 @@ export default function CreateBillPage() {
                 bankName={bankName}
                 bankIFSC={bankIFSC}
                 bankAccount={bankAccount}
+                showBankDetails={billType === 'pakki'}
                 items={items}
                 itemsTotal={itemsTotal}
                 gstEnabled={isGstEnabled}
