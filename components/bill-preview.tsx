@@ -231,29 +231,29 @@ export default function BillPreview({
                   </tbody>
                 </table>
 
-                {/* Summary Totals */}
-                <div className="grid grid-cols-[1.3fr_1fr] border border-gray-400">
+                {/* Summary Totals — Integrated look, no 'box' */}
+                <div className="grid grid-cols-[1.3fr_1fr] border-l border-r border-b border-gray-400">
                   <div className="p-4 flex flex-col justify-end">
                     <div className="font-black text-[9px] uppercase text-gray-400 mb-1">RS. IN WORDS:</div>
-                    <div className="text-[14px] font-bold leading-tight uppercase text-gray-800 tracking-tight">
+                    <div className="text-[13px] font-bold leading-tight uppercase text-gray-800 tracking-tight">
                       {grandTotal > 0 ? `${totalAmountWords} Only.` : 'Zero Rupees Only.'}
                     </div>
                   </div>
                   
                   <div className="border-l border-gray-400 flex flex-col">
-                    <div className="flex justify-between items-center px-5 py-2 border-b border-gray-300 text-[11px] font-black">
+                    <div className="flex justify-between items-center px-5 py-2 border-b border-gray-200 text-[11px] font-black">
                       <span className="text-gray-400 uppercase tracking-wider">SUB TOTAL</span>
                       <span className="text-[14px] font-black text-gray-800">{itemsTotal.toFixed(2)}</span>
                     </div>
                     
                     {balance != null && (
-                      <div className="flex justify-between items-center px-5 py-2 border-b border-gray-400 text-[11px] font-black italic">
+                      <div className="flex justify-between items-center px-5 py-2 border-b border-gray-300 text-[11px] font-black italic">
                         <span className="text-red-500 uppercase tracking-wider">BALANCE</span>
                         <span className="text-[14px] text-red-500 font-black">{balance.toFixed(2)}</span>
                       </div>
                     )}
 
-                    <div className="flex justify-between items-center px-5 py-5 bg-gray-50/40">
+                    <div className="flex justify-between items-center px-5 py-5">
                       <span className="text-[26px] font-black italic tracking-tight text-gray-900">TOTAL</span>
                       <div className="text-right">
                         <span className="text-[34px] font-[950] text-gray-900 tracking-tighter">
@@ -276,14 +276,14 @@ export default function BillPreview({
                 </div>
               </div>
 
-              {/* Bank Details (A4 Float) */}
+              {/* Bank Details — Subtle Integrated Text (Bottom Left) */}
               {showBankDetails && bankName && bankAccount && (
-                <div className="absolute bottom-12 left-12 text-[10px] border border-gray-200 p-4 rounded-xl bg-white/90 backdrop-blur shadow-xl z-20 min-w-[240px]">
-                  <div className="font-black text-red-600 mb-3 uppercase tracking-widest text-[8px] border-b pb-1">Primary Bank Details</div>
-                  <div className="space-y-2 font-bold text-gray-700">
-                    <div className="flex justify-between"><span className="text-gray-300 uppercase text-[8px]">Bank:</span><span className="text-gray-900">{bankName}</span></div>
-                    {bankIFSC && <div className="flex justify-between"><span className="text-gray-300 uppercase text-[8px]">IFSC:</span><span className="text-gray-900">{bankIFSC}</span></div>}
-                    <div className="flex justify-between"><span className="text-gray-300 uppercase text-[8px]">Account:</span><span className="text-gray-900">{bankAccount}</span></div>
+                <div className="absolute bottom-10 left-10 text-[10px] max-w-[280px] pointer-events-none">
+                  <div className="font-black text-red-600 mb-2 uppercase tracking-[0.2em] text-[8px] border-b border-gray-200 pb-1">Bank Information</div>
+                  <div className="space-y-1 font-bold text-gray-500">
+                    <div className="flex justify-between gap-4"><span className="uppercase text-[8px] text-gray-400">Bank:</span><span className="text-gray-700">{bankName}</span></div>
+                    {bankIFSC && <div className="flex justify-between gap-4"><span className="uppercase text-[8px] text-gray-400">IFSC:</span><span className="text-gray-700">{bankIFSC}</span></div>}
+                    <div className="flex justify-between gap-4"><span className="uppercase text-[8px] text-gray-400">Account:</span><span className="text-gray-700">{bankAccount}</span></div>
                   </div>
                 </div>
               )}
