@@ -509,7 +509,7 @@ export default function EditBillPage() {
                         type="date"
                         value={billDate}
                         onChange={(e) => setBillDate(e.target.value)}
-                        className="text-sm md:text-base"
+                        className="w-full h-11 bg-white px-4 font-medium border-gray-200 focus:ring-blue-500/20"
                       />
                     </div>
                   </div>

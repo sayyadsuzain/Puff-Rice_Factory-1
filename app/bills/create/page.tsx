@@ -477,7 +477,7 @@ export default function CreateBillPage() {
                           type="date"
                           value={billDate}
                           onChange={(e) => setBillDate(e.target.value)}
-                          className="h-11 bg-white font-medium"
+                          className="w-full h-11 bg-white px-4 font-medium border-gray-200 focus:ring-blue-500/20"
                           required
                         />
                       </div>

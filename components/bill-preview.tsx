@@ -118,17 +118,25 @@ export default function BillPreview({
           >
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
 
-            {/* Watermark */}
+            {/* Watermark — Centered and subtly improved */}
             <div
-              className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.06]"
-              style={{ fontSize: '320px', fontWeight: 900, letterSpacing: '25px', fontFamily: '"Playfair Display", serif', color: '#c0c0c0' }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-0 opacity-[0.05]"
+              style={{ 
+                fontSize: '280px', 
+                fontWeight: 900, 
+                letterSpacing: '20px', 
+                fontFamily: '"Playfair Display", serif', 
+                color: '#c0c0c0',
+                textAlign: 'center',
+                lineHeight: 1
+              }}
             >
               MS
             </div>
 
-            <div className="relative z-10 space-y-4 flex flex-col h-full">
+            <div className="relative z-10 flex flex-col h-full">
               {/* Header */}
-              <div className="mb-2">
+              <div className="mb-4">
                 <div className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-tight mb-1">
                   {!isKacchi && <div>Subject to Sangli Jurisdiction</div>}
                 </div>
@@ -154,56 +162,43 @@ export default function BillPreview({
                 <div className="border-b-[1px] border-red-600 mt-[2px]"></div>
               </div>
 
-              {/* Bill Info */}
-              <div className="grid grid-cols-3 gap-4 text-sm items-center py-2">
-                <div>
-                  <div className="font-bold text-xs uppercase text-gray-500">From :</div>
-                  <div className="font-bold">{COMPANY_INFO.name}</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-bold text-xs uppercase text-gray-500">No.</div>
-                  <div className="text-xl font-black text-red-600">{billNumber || '---'}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-xs uppercase text-gray-500">Date :</div>
-                  <div className="font-bold text-base">{billDate ? formatDate(billDate) : '--/--/----'}</div>
-                </div>
-              </div>
-
-              {/* Party Details */}
-              <div className="border border-gray-300 rounded-md py-3 px-4">
-                <div className="text-base font-medium">
-                  <span className="font-bold">M/s. </span>
-                  <span className="border-b border-dotted border-gray-400 min-w-[300px] inline-block">{partyName || ''}</span>
-                </div>
-                {(vehicleNumber || (!isKacchi && gstEnabled && partyGst)) && (
-                  <div className="text-sm mt-2 flex justify-between font-semibold">
-                    {vehicleNumber && (
-                      <div>
-                        <span className="font-bold text-gray-600">Vehicle No.: </span>
-                        <span>{vehicleNumber}</span>
-                      </div>
-                    )}
-                    {!isKacchi && gstEnabled && partyGst && (
-                      <div className={vehicleNumber ? 'text-right' : ''}>
-                        <span className="font-bold text-gray-600">GST No.: </span>
-                        <span>{partyGst}</span>
-                      </div>
-                    )}
+              {/* Bill/Party Info Row */}
+              <div className="grid grid-cols-2 gap-8 mb-4">
+                <div className="border border-gray-300 rounded-md py-2 px-3">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Bill To:</div>
+                  <div className="text-base font-bold leading-tight">
+                    <span className="text-gray-500 text-xs">M/s. </span>
+                    <span className="border-b border-dotted border-gray-400 min-w-[200px] inline-block">{partyName || '---'}</span>
                   </div>
-                )}
+                  {(vehicleNumber || (!isKacchi && gstEnabled && partyGst)) && (
+                    <div className="text-[10px] mt-2 flex flex-col gap-0.5 font-bold text-gray-700 uppercase">
+                      {vehicleNumber && <div>Vehicle: {vehicleNumber}</div>}
+                      {!isKacchi && gstEnabled && partyGst && <div>GST: {partyGst}</div>}
+                    </div>
+                  )}
+                </div>
+                <div className="border border-gray-300 rounded-md py-2 px-3 flex flex-col justify-center">
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-1 mb-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Bill No:</span>
+                    <span className="text-base font-black text-red-600">{billNumber || '---'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Date:</span>
+                    <span className="text-sm font-bold">{billDate ? formatDate(billDate) : '--/--/----'}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Items Table */}
-              <div className="flex-1 min-h-[450px]">
-                <table className="w-full text-[13px] border-collapse">
+              {/* Table — Sized rigidly */}
+              <div className="flex-1">
+                <table className="w-full text-[13px] border-collapse table-fixed">
                   <thead>
                     <tr className="bg-gray-50 border-t border-b border-gray-400">
-                      <th className="border-l border-r border-gray-400 p-2 text-left font-black uppercase text-xs tracking-tight">Particulars</th>
-                      <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-24">Qty. Bags</th>
-                      <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-28">Weight in Kg.</th>
-                      <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-xs tracking-tight w-24">Rate</th>
-                      <th className="border-l border-r border-gray-400 p-2 text-right font-black uppercase text-xs tracking-tight w-32">Amount</th>
+                      <th className="border-l border-r border-gray-400 p-2 text-left font-black uppercase text-[10px] tracking-tight w-[45%]">Particulars</th>
+                      <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-[10px] tracking-tight w-[12%]">Qty</th>
+                      <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-[10px] tracking-tight w-[15%]">Weight (Kg)</th>
+                      <th className="border-l border-r border-gray-400 p-2 text-center font-black uppercase text-[10px] tracking-tight w-[13%]">Rate</th>
+                      <th className="border-l border-r border-gray-400 p-2 text-right font-black uppercase text-[10px] tracking-tight w-[15%]">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="border-b border-gray-400">
@@ -217,105 +212,92 @@ export default function BillPreview({
                       items.map((item, idx) => {
                         const isPaddyItem = item.particular?.toLowerCase().includes('paddy')
                         return (
-                          <tr key={idx} className="h-8 border-none">
-                            <td className="border-l border-r border-gray-200 px-2 py-1.5 font-medium">
-                              <div>{item.particular || ''}</div>
-                              {isPaddyItem && item.weight_kg && (
-                                <div className="text-[10px] text-blue-600 font-bold">({item.weight_kg}kg total)</div>
-                              )}
+                          <tr key={idx} className="h-7 border-none">
+                            <td className="border-l border-r border-gray-300 px-2 py-1 font-medium overflow-hidden text-ellipsis whitespace-nowrap">
+                              {item.particular || ''}
                             </td>
-                            <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">{item.qty_bags || ''}</td>
-                            <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">
-                              {isPaddyItem ? `${item.weight_kg || ''}kg` : (item.weight_kg || '')}
-                            </td>
-                            <td className="border-l border-r border-gray-200 px-2 py-1.5 text-center">
-                              {item.rate ? `${item.rate.toFixed(2)}${isPaddyItem ? ' ₹/kg' : ''}` : ''}
-                            </td>
-                            <td className="border-l border-r border-gray-200 px-2 py-1.5 text-right font-bold">{item.amount?.toFixed(2) || ''}</td>
+                            <td className="border-l border-r border-gray-200 px-1 py-1 text-center font-mono text-[11px]">{item.qty_bags || ''}</td>
+                            <td className="border-l border-r border-gray-200 px-1 py-1 text-center font-mono text-[11px]">{item.weight_kg || ''}</td>
+                            <td className="border-l border-r border-gray-200 px-1 py-1 text-center font-mono text-[11px]">{item.rate?.toFixed(2) || ''}</td>
+                            <td className="border-l border-r border-gray-200 px-2 py-1 text-right font-bold font-mono text-[11px]">{item.amount?.toFixed(2) || ''}</td>
                           </tr>
                         )
                       })
                     )}
                     {items.length < 18 && Array.from({ length: 18 - items.length }).map((_, idx) => (
-                      <tr key={`empty-${idx}`} className="h-8 border-none">
-                        <td className="border-l border-r border-gray-100 p-2 text-gray-100 select-none">-</td>
-                        <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
-                        <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
-                        <td className="border-l border-r border-gray-100 p-2 text-center text-gray-100 select-none">-</td>
-                        <td className="border-l border-r border-gray-100 p-2 text-right text-gray-100 select-none">-</td>
+                      <tr key={`empty-${idx}`} className="h-7 border-none">
+                        <td className="border-l border-r border-gray-100 p-1 text-gray-50 select-none">-</td>
+                        <td className="border-l border-r border-gray-100 p-1 text-center text-gray-50 select-none">-</td>
+                        <td className="border-l border-r border-gray-100 p-1 text-center text-gray-50 select-none">-</td>
+                        <td className="border-l border-r border-gray-100 p-1 text-center text-gray-50 select-none">-</td>
+                        <td className="border-l border-r border-gray-100 p-1 text-right text-gray-50 select-none">-</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
 
-              {/* Totals */}
-              <div className="mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="font-bold text-[10px] uppercase text-gray-500 mb-1">R.S. IN WORDS:</div>
-                    <div className="text-[11px] font-bold leading-tight border-b border-gray-200 pb-2">
-                      {grandTotal > 0 ? numberToWords(grandTotal) : ''}
+                {/* Summary Section — Integrated into the same grid structure */}
+                <div className="grid grid-cols-[45%_55%] border-b border-gray-400">
+                  <div className="border-l p-3 bg-gray-50/30">
+                    <div className="font-bold text-[9px] uppercase text-gray-500 mb-1">R.S. IN WORDS:</div>
+                    <div className="text-[10px] font-black leading-tight italic uppercase text-gray-800">
+                      {grandTotal > 0 ? `${totalAmountWords} Only.` : 'Zero Rupees Only.'}
                     </div>
                   </div>
-                  <div className="text-right space-y-1">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-gray-600">SUB TOTAL</span>
-                      <span className="font-bold">₹ {itemsTotal.toFixed(2)}</span>
+                  <div className="border-l border-r border-gray-400">
+                    <div className="flex justify-between items-center px-4 py-1.5 border-b border-gray-200 text-xs">
+                      <span className="font-bold text-gray-500 uppercase">Sub Total</span>
+                      <span className="font-bold font-mono">₹{itemsTotal.toFixed(2)}</span>
                     </div>
                     {!isKacchi && gstEnabled && gstTotal > 0 && (
-                      <div className="space-y-1 pt-1 border-t border-gray-100 mt-1">
+                      <div className="px-4 py-1 border-b border-gray-200 bg-blue-50/20">
                         {cgstPercent > 0 && (
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-600">CGST @ {cgstPercent}%</span>
-                            <span className="font-bold">₹ {(itemsTotal * cgstPercent / 100).toFixed(2)}</span>
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="font-bold text-gray-500 italic">CGST @ {cgstPercent}%</span>
+                            <span className="font-bold">₹{(itemsTotal * cgstPercent / 100).toFixed(2)}</span>
                           </div>
                         )}
                         {igstPercent > 0 && (
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-600">IGST @ {igstPercent}%</span>
-                            <span className="font-bold">₹ {(itemsTotal * igstPercent / 100).toFixed(2)}</span>
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="font-bold text-gray-500 italic">IGST @ {igstPercent}%</span>
+                            <span className="font-bold">₹{(itemsTotal * igstPercent / 100).toFixed(2)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-gray-100">
-                          <span className="text-gray-600">GST Total:</span>
-                          <span>₹ {gstTotal.toFixed(2)}</span>
-                        </div>
                       </div>
                     )}
                     {balance != null && balance > 0 && (
-                      <div className="flex justify-between items-center text-sm pt-1">
-                        <span className="font-bold text-gray-600 uppercase">Balance</span>
-                        <span className="font-bold text-orange-600">₹ {balance.toFixed(2)}</span>
+                      <div className="flex justify-between items-center px-4 py-1 border-b border-gray-200 text-xs">
+                        <span className="font-bold text-gray-500 uppercase">Old Balance</span>
+                        <span className="font-bold text-orange-600 font-mono">₹{balance.toFixed(2)}</span>
                       </div>
                     )}
-                    <div className="border-t-[3px] border-black pt-2 mt-2">
-                      <div className="flex justify-between items-center px-1">
-                        <span className="text-xl font-black italic">TOTAL</span>
-                        <span className="text-2xl font-black">₹ {grandTotal.toFixed(2)}</span>
-                      </div>
+                    <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
+                      <span className="text-base font-black italic tracking-tighter">GRAND TOTAL</span>
+                      <span className="text-xl font-black text-red-600">₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Auth Signatory */}
-              <div className="mt-auto pt-6 flex justify-between items-end pb-2">
+              {/* Footer — Absolute bottom of the A4 layout */}
+              <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-end pb-4">
                 <div className="text-left w-1/2">
                   {!isKacchi && showBankDetails && bankName && bankIFSC && bankAccount && (
-                    <div className="text-[11px]">
-                      <div className="font-bold text-red-600 mb-1 uppercase tracking-tight">BANK DETAILS:</div>
-                      <div className="grid grid-cols-1 gap-0.5 font-bold uppercase text-[10px] text-gray-800">
-                        <div className="flex gap-2"><span>BANK :</span><span className="text-gray-900">{bankName}</span></div>
-                        <div className="flex gap-2"><span>IFSC CODE NO. :</span><span className="text-gray-900">{bankIFSC}</span></div>
-                        <div className="flex gap-2"><span>S. B. No. :</span><span className="text-gray-900">{bankAccount}</span></div>
+                    <div className="text-[10px] border-l-2 border-red-100 pl-3">
+                      <div className="font-black text-red-600 mb-1 uppercase tracking-widest text-[9px]">Bank Selection:</div>
+                      <div className="space-y-0.5 font-bold uppercase text-gray-700">
+                        <div className="flex gap-1"><span>BANK:</span><span className="text-gray-900">{bankName}</span></div>
+                        <div className="flex gap-1"><span>IFSC:</span><span className="text-gray-900">{bankIFSC}</span></div>
+                        <div className="flex gap-1"><span>A/C:</span><span className="text-gray-900">{bankAccount}</span></div>
                       </div>
                     </div>
                   )}
                 </div>
                 <div className="text-right">
-                  <div className="text-[11px] font-bold text-red-600 mb-8 uppercase tracking-tight">For {COMPANY_INFO.name}</div>
-                  <div className="text-[10px] font-medium w-44 ml-auto text-center border-t border-gray-400 pt-1 text-gray-600">Auth. Signatory</div>
+                  <div className="text-[11px] font-black text-red-600 mb-12 uppercase tracking-widest italic opacity-80">For {COMPANY_INFO.name}</div>
+                  <div className="text-[10px] font-black w-48 ml-auto text-center border-t-2 border-slate-900 pt-1 uppercase tracking-tighter text-slate-900">
+                    Authorized Signatory
+                  </div>
                 </div>
               </div>
             </div>
