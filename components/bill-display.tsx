@@ -429,17 +429,10 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 </div>
                 <div className="contact-info">
                   <div style={{ textTransform: 'uppercase' }}>Contact:</div>
-                  {isKacchi ? (
-                    <>
-                      <div style={{ fontWeight: '900', color: '#dc2626' }}>9860022450</div>
-                      <div style={{ fontWeight: '900', color: '#dc2626' }}>9561420666</div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ fontWeight: '900', color: '#dc2626' }}>9850280800</div>
-                      <div style={{ fontWeight: '900', color: '#dc2626' }}>8855050505</div>
-                    </>
-                  )}
+                  <>
+                    <div style={{ fontWeight: '900', color: '#dc2626' }}>9860022450</div>
+                    <div style={{ fontWeight: '900', color: '#dc2626' }}>9561420666</div>
+                  </>
                 </div>
               </div>
               

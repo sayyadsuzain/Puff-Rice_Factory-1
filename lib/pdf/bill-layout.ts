@@ -74,13 +74,8 @@ export function generateBillHTML(
               </div>
               <div class="contact-info">
                 <div style="text-transform: uppercase;">Contact:</div>
-                ${isKacchi ? `
-                  <div style="font-weight: 900; color: #dc2626;">9860022450</div>
-                  <div style="font-weight: 900; color: #dc2626;">9561420666</div>
-                ` : `
-                  <div style="font-weight: 900; color: #dc2626;">9850280800</div>
-                  <div style="font-weight: 900; color: #dc2626;">8855050505</div>
-                `}
+                <div style="font-weight: 900; color: #dc2626;">9860022450</div>
+                <div style="font-weight: 900; color: #dc2626;">9561420666</div>
               </div>
             </div>
             

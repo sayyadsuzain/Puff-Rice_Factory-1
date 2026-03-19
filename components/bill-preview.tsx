@@ -428,8 +428,8 @@ export default function BillPreview({
                   </div>
                     <div className="contact-info text-right" style={{ fontSize: '13px', fontWeight: 'bold', color: '#1f2937' }}>
                       <div className="uppercase">Contact:</div>
-                      <div style={{ fontWeight: 900, color: '#dc2626' }}>{isKacchi ? '9860022450' : '9850280800'}</div>
-                      <div style={{ fontWeight: 900, color: '#dc2626' }}>{isKacchi ? '9561420666' : '8855050505'}</div>
+                      <div style={{ fontWeight: 900, color: '#dc2626' }}>9860022450</div>
+                      <div style={{ fontWeight: 900, color: '#dc2626' }}>9561420666</div>
                     </div>
                 </div>
                 
