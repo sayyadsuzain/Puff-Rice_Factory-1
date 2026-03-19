@@ -254,9 +254,18 @@ export default function BillsPage() {
                           <Link href={`/bills/${bill.id}`} className="w-full">
                             <Button variant="outline" size="sm" className="w-full h-9 text-[10px] sm:text-xs gap-1.5 bg-gray-50 hover:bg-white text-blue-600 border-blue-100">
                               <Eye className="h-3.5 w-3.5" />
-                              View Bill
+                              View
                             </Button>
                           </Link>
+                          <Button 
+                             variant="outline" 
+                             size="sm" 
+                             className="w-full h-9 text-[10px] sm:text-xs gap-1.5 bg-gray-50 hover:bg-white text-emerald-600 border-emerald-100"
+                             onClick={() => handleEdit(bill.id)}
+                          >
+                             <Edit2 className="h-3.5 w-3.5" />
+                             Edit
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -269,9 +278,9 @@ export default function BillsPage() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
-                                variant="outline"
+                                variant="destructive"
                                 size="sm"
-                                className="w-full gap-2 h-9 text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                                className="w-full gap-1.5 h-9 text-[10px] sm:text-xs font-bold"
                               >
                                 <Trash2 className="h-4 w-4" />
                                 Delete

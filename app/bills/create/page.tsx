@@ -457,8 +457,8 @@ export default function CreateBillPage() {
                        Basic Information
                     </h3>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 overflow-hidden">
+                      <div className="space-y-2 min-w-0">
                         <Label className="text-sm font-bold text-gray-700">Bill Type</Label>
                         <Select value={billType} onValueChange={handleBillTypeChange}>
                           <SelectTrigger className="w-full h-11 bg-white" suppressHydrationWarning>
@@ -471,7 +471,7 @@ export default function CreateBillPage() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-2 min-w-0">
                         <Label className="text-sm font-bold text-gray-700">Bill Date</Label>
                         <Input
                           type="date"

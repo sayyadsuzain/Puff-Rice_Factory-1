@@ -489,8 +489,8 @@ export default function EditBillPage() {
                     Basic Information
                   </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-hidden">
+                    <div className="space-y-2 min-w-0">
                       <Label className="text-sm md:text-base font-medium">Bill Type</Label>
                       <Select value={billType} onValueChange={(value) => setBillType(value as 'kacchi' | 'pakki')}>
                         <SelectTrigger className="w-full" suppressHydrationWarning>
@@ -503,7 +503,7 @@ export default function EditBillPage() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 min-w-0">
                       <Label className="text-sm md:text-base font-medium">Bill Date</Label>
                       <Input
                         type="date"
