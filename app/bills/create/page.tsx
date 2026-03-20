@@ -44,9 +44,9 @@ export default function CreateBillPage() {
   const [igstPercent, setIgstPercent] = useState(0)
 
   // Bank Details
-  const [bankName, setBankName] = useState('KARNATAKA BANK LTD.')
-  const [bankIFSC, setBankIFSC] = useState('KARB0000729')
-  const [bankAccount, setBankAccount] = useState('7292000100047001')
+  const [bankName, setBankName] = useState('')
+  const [bankIFSC, setBankIFSC] = useState('')
+  const [bankAccount, setBankAccount] = useState('')
   const [bankBranch, setBankBranch] = useState('')
   const [originalBankDetails, setOriginalBankDetails] = useState<{id?: number, name: string, ifsc: string, account: string, branch: string} | null>(null)
   const [shouldUpdateBankProfile, setShouldUpdateBankProfile] = useState(false)
@@ -871,7 +871,7 @@ export default function CreateBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Bank Name</Label>
                             <Input
-                              placeholder="Karnatka Bank..."
+                              placeholder="Bank Name"
                               value={bankName}
                               onChange={(e) => setBankName(e.target.value)}
                               className="h-10 bg-white"
@@ -880,7 +880,7 @@ export default function CreateBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">IFSC Code</Label>
                             <Input
-                              placeholder="KARB000..."
+                              placeholder="IFSC Code"
                               value={bankIFSC}
                               onChange={(e) => setBankIFSC(e.target.value)}
                               className="h-10 bg-white font-mono"
@@ -889,7 +889,7 @@ export default function CreateBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Account No.</Label>
                             <Input
-                              placeholder="7292..."
+                              placeholder="A/C No."
                               value={bankAccount}
                               onChange={(e) => setBankAccount(e.target.value)}
                               className="h-10 bg-white font-mono"
@@ -898,7 +898,7 @@ export default function CreateBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Branch Name</Label>
                             <Input
-                              placeholder="SANGLI BRANCH"
+                              placeholder="Branch Name"
                               value={bankBranch}
                               onChange={(e) => setBankBranch(e.target.value)}
                               className="h-10 bg-white"

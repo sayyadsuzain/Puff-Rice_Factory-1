@@ -989,7 +989,7 @@ export default function EditBillPage() {
                         <div className="space-y-2 text-left">
                           <Label className="text-xs font-bold text-gray-600">Bank Name</Label>
                           <Input
-                            placeholder="Karnatka Bank..."
+                            placeholder="Bank Name"
                             value={bankName}
                             onChange={(e) => setBankName(e.target.value)}
                             className="h-10 bg-white"
@@ -998,7 +998,7 @@ export default function EditBillPage() {
                         <div className="space-y-2 text-left">
                           <Label className="text-xs font-bold text-gray-600">IFSC Code</Label>
                           <Input
-                            placeholder="KARB000..."
+                            placeholder="IFSC Code"
                             value={bankIFSC}
                             onChange={(e) => setBankIFSC(e.target.value)}
                             className="h-10 bg-white font-mono"
@@ -1007,7 +1007,7 @@ export default function EditBillPage() {
                         <div className="space-y-2 text-left">
                           <Label className="text-xs font-bold text-gray-600">Account No.</Label>
                           <Input
-                            placeholder="7292..."
+                            placeholder="A/C No."
                             value={bankAccount}
                             onChange={(e) => setBankAccount(e.target.value)}
                               className="h-10 bg-white font-mono"
@@ -1016,7 +1016,7 @@ export default function EditBillPage() {
                           <div className="space-y-2 text-left">
                             <Label className="text-xs font-bold text-gray-600">Branch Name</Label>
                             <Input
-                              placeholder="SANGLI BRANCH"
+                              placeholder="Branch Name"
                               value={bankBranch}
                               onChange={(e) => setBankBranch(e.target.value)}
                             className="h-10 bg-white"
