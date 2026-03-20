@@ -27,14 +27,14 @@ export const metadata: Metadata = {
         media: '(prefers-color-scheme: dark)',
       },
       {
-        url: '/icon.png?v=20',
+        url: '/icon.png?v=21',
         type: 'image/png',
       },
       {
-        url: '/favicon.ico?v=20',
+        url: '/favicon.ico?v=21',
       },
     ],
-    apple: '/apple-icon.png?v=20',
+    apple: '/apple-icon.png?v=21',
   },
 }
 
