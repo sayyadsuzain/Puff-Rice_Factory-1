@@ -601,7 +601,7 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename=${filename}`,
-          'Link': '</api/monthly-bill-book>; rel="canonical"; v="25"',
+          'Link': '</api/monthly-bill-book>; rel="canonical"; v="26"',
           'X-Frame-Options': 'SAMEORIGIN'
         }
       })
@@ -793,7 +793,7 @@ function generateBillHTML(bill: any, items: any[], pageNumber: number, totalPage
               <div>
                 <div style="font-weight: bold; font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Rs. in Words:</div>
                 <div style="font-size: 12px; font-weight: bold; line-height: 1.25; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
-                  ${totalInWords} Only.
+                  ${totalInWords}.
                 </div>
               </div>
             </div>
