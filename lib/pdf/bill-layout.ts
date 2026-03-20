@@ -139,11 +139,11 @@ export function generateBillHTML(
               <tbody>
                 ${itemRows}
                 <tr class="spacer-row">
-                  <td style="border-bottom: 0.5px solid #9ca3af;"></td>
-                  <td style="border-bottom: 0.5px solid #9ca3af;"></td>
-                  <td style="border-bottom: 0.5px solid #9ca3af;"></td>
-                  <td style="border-bottom: 0.5px solid #9ca3af;"></td>
-                  <td style="border-bottom: 0.5px solid #9ca3af;"></td>
+                  <td style="border-bottom: 1px solid #9ca3af;"></td>
+                  <td style="border-bottom: 1px solid #9ca3af;"></td>
+                  <td style="border-bottom: 1px solid #9ca3af;"></td>
+                  <td style="border-bottom: 1px solid #9ca3af;"></td>
+                  <td style="border-bottom: 1px solid #9ca3af;"></td>
                 </tr>
               </tbody>
             </table>

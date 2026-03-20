@@ -45,7 +45,7 @@ const useScale = () => {
   return { scale, containerRef }
 }
 
-// EXACT CSS FROM lib/pdf/bill-styles.ts with minor tweaks for viewing
+// EXACT CSS FROM lib/pdf/bill-styles.ts
 const BILL_CSS = `
   .a4-page {
     position: relative;
@@ -81,15 +81,16 @@ const BILL_CSS = `
   .content-wrapper {
     position: relative;
     z-index: 10;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
     height: 100%;
     width: 100%;
+    gap: 0;
   }
 
   .header-top {
     width: 100%;
-    margin-bottom: 2px;
+    margin-bottom: 0px;
   }
   
   .jurisdiction {
@@ -113,7 +114,7 @@ const BILL_CSS = `
     color: white;
     padding: 2px 20px;
     border-radius: 1px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 900;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -173,18 +174,16 @@ const BILL_CSS = `
   }
 
   .info-label {
-    font-weight: 900;
+    font-weight: bold;
     font-size: 10px;
     text-transform: uppercase;
-    color: #4b5563;
+    color: #6b7280;
   }
 
   .bill-no {
     font-size: 16px;
     font-weight: 900;
     color: #dc2626;
-    font-style: italic;
-    text-align: center;
   }
 
   .party-details {
@@ -203,8 +202,6 @@ const BILL_CSS = `
     border-bottom: 1px dotted #9ca3af;
     min-width: 250px;
     display: inline-block;
-    font-weight: bold;
-    margin-left: 4px;
   }
 
   .vehicle-gst-row {
@@ -216,58 +213,58 @@ const BILL_CSS = `
   }
 
   .items-table-container {
-    flex-grow: 1;
-    margin-bottom: 8px;
+    min-height: 0;
+    border-bottom: 1px solid #9ca3af;
   }
 
   .items-table {
     width: 100%;
+    height: 100%;
     font-size: 11px;
     border-collapse: collapse;
     table-layout: fixed;
-    border-bottom: 2px solid #000;
   }
 
   .items-table thead tr {
     background-color: #f9fafb;
-    border-top: 2px solid #000;
-    border-bottom: 2px solid #000;
+    border-top: 1px solid #9ca3af;
+    border-bottom: 1px solid #9ca3af;
     height: 28px;
   }
 
   .items-table th {
-    border-left: 1.5px solid #000;
-    border-right: 1.5px solid #000;
+    border-left: 1px solid #9ca3af;
+    border-right: 1px solid #9ca3af;
     padding: 2px 6px;
-    text-align: center;
+    text-align: left;
     font-weight: 900;
     text-transform: uppercase;
     font-size: 10px;
-    color: #000;
   }
 
   .items-table td {
-    border-left: 1.5px solid #000;
-    border-right: 1.5px solid #000;
-    padding: 4px 6px;
-    vertical-align: middle;
+    border-left: 1px solid #9ca3af;
+    border-right: 1px solid #9ca3af;
+    padding: 3px 6px;
+    vertical-align: top;
   }
 
   .item-row {
-    height: 26px;
-    border-bottom: 1px solid #e5e7eb;
+    height: 24px;
   }
-  
-  .item-row.filler {
-    height: 26px;
+
+  .spacer-row {
+    height: 100%;
+  }
+
+  .form-footer {
+    padding-top: 8px;
   }
 
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 16px;
-    padding: 8px 0;
-    border-top: 1px solid #d1d5db;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
 
   .words-section {
@@ -286,21 +283,17 @@ const BILL_CSS = `
     justify-content: space-between;
     align-items: center;
     font-size: 11px;
-    padding: 1px 0;
   }
 
-  .gst-summary {
-    background-color: #f9fafb;
-    padding: 4px 8px;
-    border-radius: 4px;
-    margin-bottom: 4px;
-    border: 1px solid #f3f4f6;
+  .total-label {
+    font-weight: bold;
+    color: #4b5563;
   }
 
   .grand-total-section {
-    border-top: 2px solid #dc2626;
+    border-top: 1.5px solid black;
     padding-top: 4px;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .grand-total-row {
@@ -313,69 +306,65 @@ const BILL_CSS = `
     font-size: 16px;
     font-weight: 900;
     font-style: italic;
-    color: #dc2626;
   }
 
   .grand-total-value {
     font-size: 18px;
     font-weight: 900;
-    color: #dc2626;
   }
 
   .signature-area {
-    margin-top: auto;
+    padding-top: 12px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    padding-bottom: 4px;
+    align-items: end;
   }
 
   .bank-info {
     font-size: 9px;
     text-align: left;
-    width: 60%;
+    width: 55%;
   }
 
   .bank-title {
-    font-weight: 900;
+    font-weight: bold;
     color: #dc2626;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     text-transform: uppercase;
-    font-size: 13px;
-    border-bottom: 1px solid #fee2e2;
-    display: inline-block;
+    font-size: 14px;
   }
 
   .bank-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1px;
+    gap: 0px;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 11px;
-    color: #374151;
+    font-size: 14px;
+    color: #1f2937;
   }
 
-  .auth-sign {
-    text-align: center;
+  .signatory-box {
+    text-align: right;
   }
 
   .signatory-title {
-    font-size: 11px;
-    font-weight: 900;
+    font-size: 12px;
+    font-weight: bold;
     color: #dc2626;
-    margin-bottom: 35px;
+    margin-bottom: 20px;
     text-transform: uppercase;
   }
 
   .signatory-line {
-    font-size: 10px;
-    font-weight: bold;
-    width: 150px;
-    border-top: 1.5px solid #374151;
-    padding-top: 4px;
-    color: #374151;
-    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 500;
+    width: 140px;
+    margin-left: auto;
+    text-align: center;
+    border-top: 1px solid #9ca3af;
+    padding-top: 2px;
+    color: #4b5563;
   }
 `
 
@@ -424,8 +413,7 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
       <style>{BILL_CSS}</style>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet" />
 
-      {/* Removed redundant PDF button as the main Print button is now polished and prominent */}
-
+      {/* Action Buttons - simplified for viewing */}
       <div className="mb-6 flex gap-4 no-print hidden sm:flex">
         <Button onClick={handlePrint} variant="default" className="bg-red-600 hover:bg-red-700">
           <Printer className="h-4 w-4 mr-2" />
@@ -464,10 +452,10 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 <div className="header-grid">
                   <div></div>
                   <div style={{ textAlign: 'center' }}>
-                    <div className="memo-badge">{isKacchi ? 'CASH / CREDIT MEMO' : 'TAX INVOICE'}</div>
+                    <div className="memo-badge">{isKacchi ? 'CASH / CREDIT MEMO' : 'CREDIT MEMO'}</div>
                   </div>
                   <div className="contact-info">
-                    <div style={{ textTransform: 'uppercase', fontSize: '10px', color: '#6b7280' }}>Contact:</div>
+                    <div style={{ textTransform: 'uppercase' }}>Contact:</div>
                     <div style={{ fontWeight: '900', color: '#dc2626' }}>9860022450</div>
                     <div style={{ fontWeight: '900', color: '#dc2626' }}>9561420666</div>
                   </div>
@@ -486,33 +474,33 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                   <div className="info-label">From :</div>
                   <div style={{ fontWeight: 'bold' }}>M S TRADING COMPANY</div>
                 </div>
-                <div>
-                  <div className="info-label" style={{ textAlign: 'center' }}>Bill No.</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="info-label">No.</div>
                   <div className="bill-no">{formattedBillNo || '---'}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div className="info-label">Date :</div>
-                  <div style={{ fontWeight: 'bold', fontSize: '15px' }}>{formatDate(bill.bill_date)}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{formatDate(bill.bill_date)}</div>
                 </div>
               </div>
 
               <div className="party-details">
                 <div className="party-name-row">
-                  <span style={{ fontWeight: 'bold', color: '#6b7280', fontSize: '12px' }}>TO, M/S. </span>
+                  <span style={{ fontWeight: 'bold' }}>M/s. </span>
                   <span className="party-name-underline">{partyName || '_'.repeat(40)}</span>
                 </div>
                 {(bill.vehicle_number || (!isKacchi && partyGst)) ? (
                   <div className="vehicle-gst-row">
                     {bill.vehicle_number ? (
                       <div>
-                        <span style={{ color: '#6b7280', fontSize: '10px' }}>VEHICLE NO.: </span>
-                        <span style={{ fontWeight: 'bold' }}>{bill.vehicle_number}</span>
+                        <span style={{ color: '#4b5563' }}>Vehicle No.: </span>
+                        <span>{bill.vehicle_number}</span>
                       </div>
                     ) : <div></div>}
                     {!isKacchi && partyGst ? (
                       <div>
-                        <span style={{ color: '#6b7280', fontSize: '10px' }}>GST NO.: </span>
-                        <span style={{ fontWeight: 'bold' }}>{partyGst}</span>
+                        <span style={{ color: '#4b5563' }}>GST No.: </span>
+                        <span>{partyGst}</span>
                       </div>
                     ) : null}
                   </div>
@@ -523,35 +511,30 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                 <table className="items-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '40px' }}>SR.</th>
-                      <th style={{ textAlign: 'left' }}>PARTICULARS</th>
-                      <th style={{ width: '80px' }}>BAGS</th>
-                      <th style={{ width: '100px' }}>WT (KG)</th>
-                      <th style={{ width: '100px' }}>RATE</th>
-                      <th style={{ width: '120px', textAlign: 'right' }}>AMOUNT</th>
+                      <th style={{ width: 'auto' }}>Particulars</th>
+                      <th style={{ width: '96px', textAlign: 'center' }}>Qty. Bags</th>
+                      <th style={{ width: '112px', textAlign: 'center' }}>Weight in Kg.</th>
+                      <th style={{ width: '96px', textAlign: 'center' }}>Rate</th>
+                      <th style={{ width: '128px', textAlign: 'right' }}>Amount</th>
                     </tr>
                   </thead>
                   <tbody>
                     {items.map((item, idx) => (
                       <tr key={item.id || idx} className="item-row">
-                        <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                        <td style={{ textAlign: 'left', fontWeight: 'bold' }}>{item.particular}</td>
+                        <td>{item.particular}</td>
                         <td style={{ textAlign: 'center' }}>{item.qty_bags || ''}</td>
-                        <td style={{ textAlign: 'center' }}>{item.weight_kg ? Number(item.weight_kg).toFixed(1) : ''}</td>
-                        <td style={{ textAlign: 'center' }}>{item.rate ? Number(item.rate).toFixed(2) : ''}</td>
+                        <td style={{ textAlign: 'center' }}>{item.weight_kg || ''}</td>
+                        <td style={{ textAlign: 'center' }}>{item.rate ? item.rate.toFixed(2) : ''}</td>
                         <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{item.amount ? item.amount.toFixed(2) : ''}</td>
                       </tr>
                     ))}
-                    {Array.from({ length: Math.max(0, 14 - items.length) }).map((_, idx) => (
-                      <tr key={`empty-${idx}`} className="item-row filler">
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                      </tr>
-                    ))}
+                    <tr className="spacer-row">
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -559,48 +542,51 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
               <div className="form-footer">
                 <div className="footer-grid">
                   <div className="words-section">
-                    <div style={{ fontWeight: 'bold', fontSize: '9px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '2px' }}>Rs. in Words:</div>
-                    <div style={{ fontSize: '11px', fontWeight: '900', fontStyle: 'italic' }}>
-                      {totalInWords}
+                    <div>
+                      <div style={{ fontWeight: 'bold', fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Rs. in Words:</div>
+                      <div style={{ fontSize: '12px', fontWeight: 'bold', lineHeight: '1.25', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        {totalInWords}
+                      </div>
                     </div>
                   </div>
         
                   <div className="totals-section">
-                    {!isKacchi && (bill.is_gst_enabled || bill.gst_total > 0) ? (
-                      <div className="gst-summary">
-                        <div className="total-row">
-                          <span style={{ color: '#6b7280', fontSize: '10px' }}>TAXABLE AMT:</span>
-                          <span style={{ fontWeight: 'bold' }}>₹ {(bill.taxable_amount || (grandTotal - (bill.gst_total || 0))).toFixed(2)}</span>
-                        </div>
+                    <div className="total-row">
+                      <span className="total-label">SUB TOTAL</span>
+                      <span style={{ fontWeight: 'bold' }}>₹ {(bill.total_amount || 0).toFixed(2)}</span>
+                    </div>
+        
+                    {!isKacchi && bill.is_gst_enabled && (bill.gst_total || 0) > 0 ? (
+                      <div style={{ marginTop: '4px', borderTop: '0.5px solid #f3f4f6', paddingTop: '4px' }}>
                         {(bill.cgst_percent || 0) > 0 && (
                           <div className="total-row">
-                            <span style={{ color: '#6b7280', fontSize: '10px' }}>CGST ({bill.cgst_percent}%):</span>
-                            <span style={{ fontWeight: 'bold' }}>₹ {(bill.cgst_amount || 0).toFixed(2)}</span>
+                            <span style={{ color: '#4b5563' }}>CGST @ {bill.cgst_percent}%</span>
+                            <span style={{ fontWeight: 'bold', color: 'black' }}>₹ {bill.cgst_amount.toFixed(2)}</span>
                           </div>
                         )}
                         {(bill.igst_percent || 0) > 0 && (
                           <div className="total-row">
-                            <span style={{ color: '#6b7280', fontSize: '10px' }}>IGST ({bill.igst_percent}%):</span>
-                            <span style={{ fontWeight: 'bold' }}>₹ {(bill.igst_amount || 0).toFixed(2)}</span>
+                            <span style={{ color: '#4b5563' }}>IGST @ {bill.igst_percent}%</span>
+                            <span style={{ fontWeight: 'bold', color: 'black' }}>₹ {bill.igst_amount.toFixed(2)}</span>
                           </div>
                         )}
-                        <div className="total-row" style={{ borderTop: '1px solid #e5e7eb', marginTop: '2px', paddingTop: '2px' }}>
-                          <span style={{ color: '#6b7280', fontWeight: '900', fontSize: '10px' }}>GST TOTAL:</span>
-                          <span style={{ fontWeight: '900' }}>₹ {(bill.gst_total || 0).toFixed(2)}</span>
+                        <div className="total-row" style={{ fontWeight: 'bold', paddingTop: '4px', borderTop: '0.5px solid #f3f4f6', marginTop: '2px' }}>
+                          <span style={{ color: '#4b5563' }}>GST Total:</span>
+                          <span>₹ {bill.gst_total.toFixed(2)}</span>
                         </div>
                       </div>
                     ) : null}
         
-                    {bill.balance && bill.balance > 0 ? (
-                      <div className="total-row" style={{ marginTop: '2px', padding: '2px 8px', backgroundColor: '#fff7ed', borderRadius: '4px', border: '1px solid #ffedd5' }}>
-                        <span style={{ fontWeight: '900', color: '#ea580c', fontSize: '10px' }}>BALANCE:</span>
-                        <span style={{ fontWeight: '900', color: '#ea580c' }}>₹ {bill.balance.toFixed(2)}</span>
+                    {bill.balance > 0 ? (
+                      <div className="total-row" style={{ marginTop: '4px' }}>
+                        <span style={{ fontWeight: 'bold', color: '#4b5563', textTransform: 'uppercase' }}>BALANCE</span>
+                        <span style={{ fontWeight: 'bold', color: '#ea580c' }}>₹ {bill.balance.toFixed(2)}</span>
                       </div>
                     ) : null}
         
                     <div className="grand-total-section">
                       <div className="grand-total-row">
-                        <span className="grand-total-label">TOTAL AMOUNT</span>
+                        <span className="grand-total-label">TOTAL</span>
                         <span className="grand-total-value">₹ {grandTotal.toFixed(2)}</span>
                       </div>
                     </div>
@@ -611,19 +597,19 @@ export default function BillDisplay({ bill, items, partyName, partyGst }: BillDi
                   <div className="bank-info">
                     {!isKacchi && bill.bank_name ? (
                       <>
-                        <div className="bank-title">Bank Account Details</div>
+                        <div className="bank-title">BANK DETAILS:</div>
                         <div className="bank-grid">
-                          <div><span style={{ color: '#6b7280', width: '60px', display: 'inline-block' }}>BANK:</span> <span style={{ color: '#111827' }}>{bill.bank_name}</span></div>
-                          <div><span style={{ color: '#6b7280', width: '60px', display: 'inline-block' }}>BRANCH:</span> <span style={{ color: '#111827' }}>{bill.bank_branch || ''}</span></div>
-                          <div><span style={{ color: '#6b7280', width: '60px', display: 'inline-block' }}>A/C NO:</span> <span style={{ color: '#111827' }}>{bill.bank_account}</span></div>
-                          <div><span style={{ color: '#6b7280', width: '60px', display: 'inline-block' }}>IFSC:</span> <span style={{ color: '#111827' }}>{bill.bank_ifsc}</span></div>
+                          <div style={{ display: 'flex', gap: '8px' }}><span>BANK :</span> <span style={{ color: '#000' }}>{bill.bank_name}</span></div>
+                          <div style={{ display: 'flex', gap: '8px' }}><span>BRANCH :</span> <span style={{ color: '#000' }}>{bill.bank_branch || ''}</span></div>
+                          <div style={{ display: 'flex', gap: '8px' }}><span>A/C NO :</span> <span style={{ color: '#000' }}>{bill.bank_account}</span></div>
+                          <div style={{ display: 'flex', gap: '8px' }}><span>IFSC :</span> <span style={{ color: '#000' }}>{bill.bank_ifsc}</span></div>
                         </div>
                       </>
                     ) : null}
                   </div>
-                  <div className="auth-sign">
+                  <div className="signatory-box">
                     <div className="signatory-title">For M S TRADING COMPANY</div>
-                    <div className="signatory-line">Authorized Signatory</div>
+                    <div className="signatory-line">Auth. Signatory</div>
                   </div>
                 </div>
               </div>

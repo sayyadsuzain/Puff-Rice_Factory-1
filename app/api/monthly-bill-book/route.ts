@@ -344,7 +344,7 @@ export async function POST(request: NextRequest) {
           }
  
           .party-details {
-            border: 0.5px solid #d1d5db;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
             padding: 6px 10px;
             margin-bottom: 8px;
@@ -356,7 +356,7 @@ export async function POST(request: NextRequest) {
           }
  
           .party-name-underline {
-            border-bottom: 0.5px dotted #9ca3af;
+            border-bottom: 1px dotted #9ca3af;
             min-width: 250px;
             display: inline-block;
           }
@@ -371,7 +371,7 @@ export async function POST(request: NextRequest) {
  
           .items-table-container {
             min-height: 0;
-            border-bottom: 0.5px solid #9ca3af;
+            border-bottom: 1px solid #9ca3af;
           }
  
           .items-table {
@@ -384,14 +384,14 @@ export async function POST(request: NextRequest) {
  
           .items-table thead tr {
             background-color: #f9fafb;
-            border-top: 0.5px solid #9ca3af;
-            border-bottom: 0.5px solid #9ca3af;
+            border-top: 1px solid #9ca3af;
+            border-bottom: 1px solid #9ca3af;
             height: 28px;
           }
  
           .items-table th {
-            border-left: 0.5px solid #9ca3af;
-            border-right: 0.5px solid #9ca3af;
+            border-left: 1px solid #9ca3af;
+            border-right: 1px solid #9ca3af;
             padding: 2px 6px;
             text-align: left;
             font-weight: 900;
@@ -400,8 +400,8 @@ export async function POST(request: NextRequest) {
           }
  
           .items-table td {
-            border-left: 0.5px solid #9ca3af;
-            border-right: 0.5px solid #9ca3af;
+            border-left: 1px solid #9ca3af;
+            border-right: 1px solid #9ca3af;
             padding: 3px 6px;
             vertical-align: top;
           }
@@ -520,7 +520,7 @@ export async function POST(request: NextRequest) {
             width: 140px;
             margin-left: auto;
             text-align: center;
-            border-top: 0.5px solid #9ca3af;
+            border-top: 1px solid #9ca3af;
             padding-top: 2px;
             color: #4b5563;
           }
@@ -601,7 +601,7 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename=${filename}`,
-          'Link': '</api/monthly-bill-book>; rel="canonical"; v="23"',
+          'Link': '</api/monthly-bill-book>; rel="canonical"; v="24"',
           'X-Frame-Options': 'SAMEORIGIN'
         }
       })

@@ -125,7 +125,7 @@ export const BILL_CSS = `
     margin-top: 4px;
   }
   .red-divider-sub {
-    border-bottom: 0.5px solid #dc2626;
+    border-bottom: 1px solid #dc2626;
     margin-top: 1px;
   }
 
@@ -152,7 +152,7 @@ export const BILL_CSS = `
   }
 
   .party-details {
-    border: 0.5px solid #d1d5db;
+    border: 1px solid #d1d5db;
     border-radius: 4px;
     padding: 6px 10px;
     margin-bottom: 8px;
@@ -164,7 +164,7 @@ export const BILL_CSS = `
   }
 
   .party-name-underline {
-    border-bottom: 0.5px dotted #9ca3af;
+    border-bottom: 1px dotted #9ca3af;
     min-width: 250px;
     display: inline-block;
   }
@@ -179,7 +179,7 @@ export const BILL_CSS = `
 
   .items-table-container {
     min-height: 0;
-    border-bottom: 0.5px solid #9ca3af;
+    border-bottom: 1px solid #9ca3af;
   }
 
   .items-table {
@@ -192,14 +192,14 @@ export const BILL_CSS = `
 
   .items-table thead tr {
     background-color: #f9fafb;
-    border-top: 0.5px solid #9ca3af;
-    border-bottom: 0.5px solid #9ca3af;
+    border-top: 1px solid #9ca3af;
+    border-bottom: 1px solid #9ca3af;
     height: 28px;
   }
 
   .items-table th {
-    border-left: 0.5px solid #9ca3af;
-    border-right: 0.5px solid #9ca3af;
+    border-left: 1px solid #9ca3af;
+    border-right: 1px solid #9ca3af;
     padding: 2px 6px;
     text-align: left;
     font-weight: 900;
@@ -208,8 +208,8 @@ export const BILL_CSS = `
   }
 
   .items-table td {
-    border-left: 0.5px solid #9ca3af;
-    border-right: 0.5px solid #9ca3af;
+    border-left: 1px solid #9ca3af;
+    border-right: 1px solid #9ca3af;
     padding: 3px 6px;
     vertical-align: top;
   }
